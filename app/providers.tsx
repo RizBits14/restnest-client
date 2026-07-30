@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
-import { Toaster } from "sonner";
+import { AppToaster } from "@/components/ui/app-toaster";
 
 type AppProvidersProps = Readonly<{
     children: React.ReactNode;
@@ -41,21 +41,7 @@ export function AppProviders({ children }: AppProvidersProps) {
         >
             <QueryClientProvider client={queryClient}>
                 {children}
-
-                <Toaster
-                    position="top-right"
-                    duration={4_000}
-                    visibleToasts={4}
-                    closeButton
-                    toastOptions={{
-                        style: {
-                            background: "var(--surface)",
-                            color: "var(--foreground)",
-                            border: "1px solid var(--border)",
-                            boxShadow: "0 16px 40px rgba(20, 30, 24, 0.12)",
-                        },
-                    }}
-                />
+                <AppToaster />
             </QueryClientProvider>
         </ThemeProvider>
     );
