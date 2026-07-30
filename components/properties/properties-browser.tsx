@@ -1,18 +1,51 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
     Building2,
     RefreshCw,
 } from "lucide-react";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyCardSkeleton } from "@/components/properties/property-card-skeleton";
+import { PropertyFilterForm } from "@/components/properties/property-filter-form";
 import { ApiError } from "@/lib/api/api-client";
-import { getProperties } from "@/lib/api/properties";
+import { getCategories } from "@/lib/api/categories";
+import {
+    getProperties,
+    type PropertyFilters,
+} from "@/lib/api/properties";
+import type { PropertyFilterFormValues } from "@/lib/validation/property-filter-schema";
+
+function createAppliedFilters(
+    values: PropertyFilterFormValues,
+): PropertyFilters {
+    return {
+        location: values.location || undefined,
+        categoryId: values.categoryId || undefined,
+        minPrice: values.minPrice
+            ? Number(values.minPrice)
+            : undefined,
+        maxPrice: values.maxPrice
+            ? Number(values.maxPrice)
+            : undefined,
+    };
+}
 
 export function PropertiesBrowser() {
+    const [appliedFilters, setAppliedFilters] =
+        useState<PropertyFilters>({});
+
+    const {
+        data: categories = [],
+        error: categoriesError,
+        isLoading: isCategoriesLoading,
+    } = useQuery({
+        queryKey: ["property-categories"],
+        queryFn: getCategories,
+    });
+
     const {
         data: properties = [],
         error,
@@ -20,17 +53,41 @@ export function PropertiesBrowser() {
         isFetching,
         refetch,
     } = useQuery({
-        queryKey: ["properties", "browse", "available"],
+        queryKey: [
+            "properties",
+            "browse",
+            "available",
+            appliedFilters,
+        ],
         queryFn: () =>
             getProperties({
+                ...appliedFilters,
                 status: "AVAILABLE",
             }),
+        placeholderData: (previousData) => previousData,
     });
 
     const errorMessage =
         error instanceof ApiError
             ? error.message
             : "Available properties could not be loaded.";
+
+    const categoryErrorMessage =
+        categoriesError instanceof ApiError
+            ? categoriesError.message
+            : categoriesError
+                ? "Property types could not be loaded."
+                : undefined;
+
+    function handleApplyFilters(
+        values: PropertyFilterFormValues,
+    ) {
+        setAppliedFilters(createAppliedFilters(values));
+    }
+
+    function handleResetFilters() {
+        setAppliedFilters({});
+    }
 
     return (
         <section className="py-14 sm:py-18 lg:py-20">
@@ -48,6 +105,17 @@ export function PropertiesBrowser() {
                         Browse currently available properties with transparent pricing
                         and essential rental information.
                     </p>
+                </div>
+
+                <div className="mt-8">
+                    <PropertyFilterForm
+                        categories={categories}
+                        isCategoriesLoading={isCategoriesLoading}
+                        categoryErrorMessage={categoryErrorMessage}
+                        isUpdating={isFetching && !isLoading}
+                        onApply={handleApplyFilters}
+                        onReset={handleResetFilters}
+                    />
                 </div>
 
                 {isLoading ? (
@@ -89,20 +157,21 @@ export function PropertiesBrowser() {
                         </span>
 
                         <h2 className="mt-5 text-xl font-semibold tracking-[-0.025em] text-foreground">
-                            No available properties found
+                            No matching properties found
                         </h2>
 
                         <p className="mx-auto mt-2 max-w-lg leading-7 text-muted-foreground">
-                            New listings will appear here once landlords make their
-                            properties available.
+                            Try changing or clearing the filters. New listings will
+                            appear here when landlords make them available.
                         </p>
 
-                        <Link
-                            href="/auth/register"
+                        <button
+                            type="button"
+                            onClick={handleResetFilters}
                             className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-surface-muted"
                         >
-                            List a property
-                        </Link>
+                            Clear applied filters
+                        </button>
                     </div>
                 ) : (
                     <>
@@ -114,8 +183,17 @@ export function PropertiesBrowser() {
                                 <span className="font-semibold text-foreground">
                                     {properties.length}
                                 </span>{" "}
-                                {properties.length === 1 ? "property" : "properties"} available
+                                {properties.length === 1
+                                    ? "property"
+                                    : "properties"}{" "}
+                                available
                             </p>
+
+                            {isFetching && (
+                                <p className="text-sm font-medium text-brand">
+                                    Updating results...
+                                </p>
+                            )}
                         </div>
 
                         <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
