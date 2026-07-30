@@ -1,6 +1,6 @@
 export default function HomePage() {
   return (
-    <main className="grid min-h-svh place-items-center px-5 py-12 sm:px-8">
+    <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-5 py-12 sm:px-8">
       <section className="w-full max-w-2xl rounded-[2rem] border border-border bg-surface p-7 shadow-[0_20px_60px_rgba(42,48,43,0.08)] sm:p-12">
         <div className="mb-8 flex items-center gap-3">
           <span

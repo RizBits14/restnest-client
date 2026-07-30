@@ -37,24 +37,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
+.dark {
+  color-scheme: dark;
 
-    --background: #171a18;
-    --foreground: #ecebe5;
+  --background: #171a18;
+  --foreground: #ecebe5;
 
-    --surface: #202421;
-    --surface-muted: #292e2a;
+  --surface: #202421;
+  --surface-muted: #292e2a;
 
-    --border: #373d38;
-    --muted-foreground: #a8aea8;
+  --border: #373d38;
+  --muted-foreground: #a8aea8;
 
-    --brand: #8aa995;
-    --brand-foreground: #142019;
+  --brand: #8aa995;
+  --brand-foreground: #142019;
 
-    --focus: #a6c0ad;
-  }
+  --focus: #a6c0ad;
 }
 
 * {

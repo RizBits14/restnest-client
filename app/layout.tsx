@@ -32,6 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning={true}
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-svh bg-background font-sans text-foreground antialiased">
