@@ -34,15 +34,6 @@ export function HeroSection() {
         <section className="overflow-hidden border-b border-border">
             <div className="mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[88rem] items-center gap-14 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)] lg:gap-20 lg:px-8 lg:py-24">
                 <div>
-                    <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-muted-foreground">
-                        <span
-                            aria-hidden="true"
-                            className="size-2 rounded-full bg-brand"
-                        />
-
-                        Rental marketplace, made simpler
-                    </div>
-
                     <h1 className="max-w-3xl text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-foreground sm:text-6xl lg:text-7xl">
                         Find a place that feels right.
                         <span className="block text-brand">
