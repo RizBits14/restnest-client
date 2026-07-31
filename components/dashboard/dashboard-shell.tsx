@@ -40,6 +40,11 @@ const dashboardNavigation = {
             href: "/dashboard/tenant",
             icon: LayoutDashboard,
         },
+        {
+            label: "My rentals",
+            href: "/dashboard/tenant/rentals",
+            icon: ClipboardList,
+        },
     ],
 
     LANDLORD: [
@@ -90,6 +95,9 @@ export function DashboardShell({
 
     const navigationItems = dashboardNavigation[user.role];
 
+    const roleDashboardRoot =
+        `/dashboard/${user.role.toLowerCase()}`;
+
     async function handleLogout() {
         setIsLoggingOut(true);
 
@@ -132,7 +140,7 @@ export function DashboardShell({
 
                 const isActive =
                     pathname === item.href ||
-                    (item.href !== "/dashboard/landlord" &&
+                    (item.href !== roleDashboardRoot &&
                         pathname.startsWith(`${item.href}/`));
 
                 return (
