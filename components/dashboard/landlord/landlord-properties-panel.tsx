@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { PropertyCardActions } from "@/components/dashboard/landlord/property-card-actions";
 import {
     Bath,
     BedDouble,
@@ -16,7 +17,10 @@ import {
 import Link from "next/link";
 
 import { PropertyImage } from "@/components/properties/property-image";
-import { getLandlordProperties } from "@/lib/api/landlord-properties-client";
+import {
+    getLandlordProperties,
+    landlordPropertiesQueryKey,
+} from "@/lib/api/landlord-properties-client";
 import type {
     LandlordProperty,
     PropertyStatus,
@@ -188,6 +192,7 @@ function LandlordPropertyCard({
                         </span>
                     )}
                 </div>
+                <PropertyCardActions property={property} />
             </div>
         </article>
     );
@@ -201,7 +206,7 @@ export function LandlordPropertiesPanel() {
         isFetching,
         refetch,
     } = useQuery({
-        queryKey: ["landlord", "properties"],
+        queryKey: landlordPropertiesQueryKey,
         queryFn: getLandlordProperties,
     });
 

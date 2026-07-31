@@ -2,7 +2,13 @@ import type { ApiSuccessResponse } from "@/types/api";
 import type {
     CreatePropertyInput,
     LandlordProperty,
+    UpdatePropertyInput,
 } from "@/types/property";
+
+export const landlordPropertiesQueryKey = [
+    "landlord",
+    "properties",
+] as const;
 
 type ErrorResponse = {
     success?: false;
@@ -87,6 +93,116 @@ export async function createLandlordProperty(
         throw getResponseError(
             result,
             "The property could not be created.",
+        );
+    }
+
+    return result.data;
+}
+
+export async function getLandlordProperty(
+    propertyId: string,
+) {
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `/api/landlord/properties/${encodeURIComponent(propertyId)}`,
+            {
+                method: "GET",
+                credentials: "include",
+                cache: "no-store",
+            },
+        );
+    } catch {
+        throw new Error(
+            "Unable to load the property. Check your connection and try again.",
+        );
+    }
+
+    const result =
+        await parseResponse<LandlordProperty>(response);
+
+    if (
+        !response.ok ||
+        !result?.success ||
+        !result.data
+    ) {
+        throw getResponseError(
+            result,
+            "The property could not be loaded.",
+        );
+    }
+
+    return result.data;
+}
+
+export async function updateLandlordProperty(
+    propertyId: string,
+    input: UpdatePropertyInput,
+) {
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `/api/landlord/properties-borken/${encodeURIComponent(propertyId)}`,
+            {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(input),
+            },
+        );
+    } catch {
+        throw new Error(
+            "Unable to update the property. Check your connection and try again.",
+        );
+    }
+
+    const result =
+        await parseResponse<LandlordProperty>(response);
+
+    if (
+        !response.ok ||
+        !result?.success ||
+        !result.data
+    ) {
+        throw getResponseError(
+            result,
+            "The property could not be updated.",
+        );
+    }
+
+    return result.data;
+}
+
+export async function deleteLandlordProperty(
+    propertyId: string,
+) {
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `/api/landlord/properties/${encodeURIComponent(propertyId)}`,
+            {
+                method: "DELETE",
+                credentials: "include",
+            },
+        );
+    } catch {
+        throw new Error(
+            "Unable to delete the property. Check your connection and try again.",
+        );
+    }
+
+    const result =
+        await parseResponse<LandlordProperty>(response);
+
+    if (!response.ok || !result?.success) {
+        throw getResponseError(
+            result,
+            "The property could not be deleted.",
         );
     }
 

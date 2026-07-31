@@ -119,6 +119,13 @@ export const createPropertySchema = z.object({
         }),
 });
 
-export type CreatePropertyFormValues = z.infer<
-    typeof createPropertySchema
->;
+export const editPropertySchema = createPropertySchema.extend({
+    status: z.enum([
+        "AVAILABLE",
+        "RENTED",
+        "UNAVAILABLE",
+    ]),
+});
+
+export type CreatePropertyFormValues = z.infer<typeof createPropertySchema>;
+export type EditPropertyFormValues = z.infer<typeof editPropertySchema>;
