@@ -11,10 +11,12 @@ import {
     CircleOff,
     LoaderCircle,
     LockKeyhole,
+    Pencil,
     Trash2,
     TriangleAlert,
     X,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { toaster } from "@/components/ui/app-toaster";
@@ -212,6 +214,16 @@ export function PropertyCardActions({
 
     return (
         <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
+            <Link
+                href={`/dashboard/landlord/properties/${property.id}/edit`}
+                className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
+            >
+                <Pencil
+                    aria-hidden="true"
+                    className="size-4 text-brand"
+                />
+                Edit
+            </Link>
             {nextAvailabilityStatus ? (
                 <button
                     type="button"

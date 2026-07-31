@@ -10,6 +10,15 @@ export const landlordPropertiesQueryKey = [
     "properties",
 ] as const;
 
+export function landlordPropertyQueryKey(
+    propertyId: string,
+) {
+    return [
+        ...landlordPropertiesQueryKey,
+        propertyId,
+    ] as const;
+}
+
 type ErrorResponse = {
     success?: false;
     message?: string;
@@ -144,7 +153,7 @@ export async function updateLandlordProperty(
 
     try {
         response = await fetch(
-            `/api/landlord/properties-borken/${encodeURIComponent(propertyId)}`,
+            `/api/landlord/properties/${encodeURIComponent(propertyId)}`,
             {
                 method: "PATCH",
                 credentials: "include",

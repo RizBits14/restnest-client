@@ -1,5 +1,11 @@
-import type { CreatePropertyFormValues } from "@/lib/validation/property-schema";
-import type { CreatePropertyInput } from "@/types/property";
+import type {
+    CreatePropertyFormValues,
+    EditPropertyFormValues,
+} from "@/lib/validation/property-schema";
+import type {
+    CreatePropertyInput,
+    UpdatePropertyInput,
+} from "@/types/property";
 
 function splitAmenities(value: string) {
     return value
@@ -29,21 +35,49 @@ export function createPropertyPayload(
         bedrooms: Number(values.bedrooms),
         bathrooms: Number(values.bathrooms),
         categoryId: values.categoryId,
-
         ...(values.address.trim()
-            ? { address: values.address.trim() }
+            ? {
+                address: values.address.trim(),
+            }
             : {}),
-
         ...(values.area.trim()
-            ? { area: Number(values.area) }
+            ? {
+                area: Number(values.area),
+            }
             : {}),
-
         ...(amenities.length > 0
-            ? { amenities }
+            ? {
+                amenities,
+            }
             : {}),
-
         ...(images.length > 0
-            ? { images }
+            ? {
+                images,
+            }
             : {}),
     };
+}
+
+export function createUpdatePropertyPayload(
+    values: EditPropertyFormValues,
+): UpdatePropertyInput {
+    const payload: UpdatePropertyInput = {
+        title: values.title.trim(),
+        description: values.description.trim(),
+        location: values.location.trim(),
+        address: values.address.trim(),
+        price: Number(values.price),
+        bedrooms: Number(values.bedrooms),
+        bathrooms: Number(values.bathrooms),
+        amenities: splitAmenities(values.amenities),
+        images: splitImageUrls(values.imageUrls),
+        categoryId: values.categoryId,
+        status: values.status,
+    };
+
+    if (values.area.trim()) {
+        payload.area = Number(values.area);
+    }
+
+    return payload;
 }
