@@ -8,6 +8,7 @@ import {
     LogOut,
     Menu,
     UserRound,
+    UsersRound,
     ClipboardList,
     X,
 } from "lucide-react";
@@ -70,6 +71,11 @@ const dashboardNavigation = {
             label: "Overview",
             href: "/dashboard/admin",
             icon: LayoutDashboard,
+        },
+        {
+            label: "Users",
+            href: "/dashboard/admin/users",
+            icon: UsersRound,
         },
     ],
 } as const;
