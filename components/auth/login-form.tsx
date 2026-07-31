@@ -90,6 +90,10 @@ export function LoginForm() {
                 description: "Welcome back to RESTNEST.",
             });
 
+            await new Promise((resolve) => {
+                window.setTimeout(resolve, 650);
+            });
+
             router.replace(
                 getDashboardPath(result.data.user.role),
             );
