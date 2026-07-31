@@ -8,6 +8,7 @@ import {
     LogOut,
     Menu,
     UserRound,
+    ClipboardList,
     X,
 } from "lucide-react";
 import Link from "next/link";
@@ -51,6 +52,11 @@ const dashboardNavigation = {
             label: "Properties",
             href: "/dashboard/landlord/properties",
             icon: Building2,
+        },
+        {
+            label: "Requests",
+            href: "/dashboard/landlord/requests",
+            icon: ClipboardList,
         },
     ],
 
