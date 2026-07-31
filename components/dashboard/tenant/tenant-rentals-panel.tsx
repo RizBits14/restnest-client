@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { TenantPaymentButton } from "@/components/dashboard/tenant/tenant-payment-button";
+import { TenantRentalReview } from "@/components/dashboard/tenant/tenant-rental-review";
 
 import { PropertyImage } from "@/components/properties/property-image";
 import {
@@ -297,6 +298,8 @@ function TenantRentalCard({
                             />
                         </div>
                     )}
+
+                <TenantRentalReview rental={rental} />
 
                 <Link
                     href={`/properties/${rental.propertyId}`}
