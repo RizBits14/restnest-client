@@ -64,3 +64,18 @@ export type LandlordProperty = Omit<
 > & {
     landlord?: PropertyLandlord;
 };
+
+export type PropertyReview = {
+    id: string;
+    rating: number;
+    comment: string | null;
+    tenantId: string;
+    propertyId: string;
+    rentalRequestId: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type PropertyDetails = Property & {
+    reviews: PropertyReview[];
+};

@@ -1,20 +1,14 @@
 import type { ApiSuccessResponse } from "@/types/api";
-import type { PropertyDetails } from "@/types/property";
+import type { RentalPayment } from "@/types/rental";
 
 type ErrorResponse = {
     success?: false;
     message?: string;
 };
 
-export function propertyDetailsQueryKey(
-    propertyId: string,
-) {
-    return [
-        "properties",
-        "details",
-        propertyId,
-    ] as const;
-}
+type CreatePaymentInput = {
+    rentalRequestId: string;
+};
 
 async function parseResponse<T>(
     response: Response,
@@ -37,27 +31,31 @@ function getResponseError(
     );
 }
 
-export async function getPropertyDetails(
-    propertyId: string,
-): Promise<PropertyDetails> {
+export async function createTenantPayment(
+    input: CreatePaymentInput,
+) {
     let response: Response;
 
     try {
         response = await fetch(
-            `/api/properties/${encodeURIComponent(propertyId)}`,
+            "/api/payments/create",
             {
-                method: "GET",
-                cache: "no-store",
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(input),
             },
         );
     } catch {
         throw new Error(
-            "Unable to load the property. Check your connection and try again.",
+            "Unable to start the payment. Check your connection and try again.",
         );
     }
 
     const result =
-        await parseResponse<PropertyDetails>(
+        await parseResponse<RentalPayment>(
             response,
         );
 
@@ -68,7 +66,13 @@ export async function getPropertyDetails(
     ) {
         throw getResponseError(
             result,
-            "The property could not be loaded.",
+            "The payment could not be started.",
+        );
+    }
+
+    if (!result.data.paymentUrl) {
+        throw new Error(
+            "Stripe Checkout URL was not returned.",
         );
     }
 

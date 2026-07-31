@@ -15,6 +15,7 @@ import {
     Star,
 } from "lucide-react";
 import Link from "next/link";
+import type { PropertyDetails } from "@/types/property";
 
 import { PropertyImage } from "@/components/properties/property-image";
 import { RentalRequestForm } from "@/components/properties/rental-request-form";
@@ -50,7 +51,7 @@ export function PropertyDetailsView({
         isLoading,
         isFetching,
         refetch,
-    } = useQuery({
+    } = useQuery<PropertyDetails, Error>({
         queryKey:
             propertyDetailsQueryKey(propertyId),
         queryFn: () =>

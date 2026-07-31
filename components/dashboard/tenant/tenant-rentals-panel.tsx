@@ -13,6 +13,7 @@ import {
     RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { TenantPaymentButton } from "@/components/dashboard/tenant/tenant-payment-button";
 
 import { PropertyImage } from "@/components/properties/property-image";
 import {
@@ -284,9 +285,22 @@ function TenantRentalCard({
                     </p>
                 </div>
 
+                {rental.status === "APPROVED" &&
+                    rental.payment?.status !== "COMPLETED" && (
+                        <div className="mt-5">
+                            <TenantPaymentButton
+                                rentalRequestId={rental.id}
+                                propertyTitle={
+                                    rental.property.title
+                                }
+                                payment={rental.payment}
+                            />
+                        </div>
+                    )}
+
                 <Link
                     href={`/properties/${rental.propertyId}`}
-                    className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
+                    className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
                 >
                     View property
                     <ArrowUpRight
