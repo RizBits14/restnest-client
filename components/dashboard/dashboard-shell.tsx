@@ -77,6 +77,11 @@ const dashboardNavigation = {
             href: "/dashboard/admin/users",
             icon: UsersRound,
         },
+        {
+            label: "Properties",
+            href: "/dashboard/admin/properties",
+            icon: Building2,
+        },
     ],
 } as const;
 
