@@ -6,7 +6,10 @@ import type {
 
 type JsonRequestBody = Record<string, unknown> | unknown[];
 
-type ApiRequestOptions = Omit<RequestInit, "body" | "headers"> & {
+export type ApiRequestOptions = Omit<
+    RequestInit,
+    "body" | "headers"
+> & {
     body?: JsonRequestBody | FormData;
     headers?: HeadersInit;
     token?: string;

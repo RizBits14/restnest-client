@@ -38,3 +38,29 @@ export type Property = {
     category: PropertyCategory
     landlord: PropertyLandlord
 }
+
+export type CreatePropertyInput = {
+    title: string;
+    description: string;
+    location: string;
+    address?: string;
+    price: number;
+    bedrooms: number;
+    bathrooms: number;
+    area?: number;
+    amenities?: string[];
+    images?: string[];
+    categoryId: string;
+};
+
+export type UpdatePropertyInput =
+    Partial<CreatePropertyInput> & {
+        status?: PropertyStatus;
+    };
+
+export type LandlordProperty = Omit<
+    Property,
+    "landlord"
+> & {
+    landlord?: PropertyLandlord;
+};
