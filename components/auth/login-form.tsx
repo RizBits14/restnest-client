@@ -21,6 +21,8 @@ import {
     type LoginFormValues,
 } from "@/lib/validation/auth-schema";
 import type { AuthUser } from "@/types/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { sessionQueryKey } from "@/hooks/use-session";
 
 type LoginResponse = {
     success: boolean;
@@ -37,12 +39,14 @@ const defaultValues: LoginFormValues = {
 
 export function LoginForm() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [showPassword, setShowPassword] = useState(false);
 
     const {
         register,
         handleSubmit,
         setError,
+        clearErrors,
         formState: {
             errors,
             isSubmitting,
@@ -53,6 +57,7 @@ export function LoginForm() {
     });
 
     async function onSubmit(values: LoginFormValues) {
+        clearErrors("root");
         try {
             const response = await fetch("/api/auth/login", {
                 method: "POST",
@@ -74,6 +79,11 @@ export function LoginForm() {
 
                 return;
             }
+
+            queryClient.setQueryData(
+                sessionQueryKey,
+                result.data.user,
+            );
 
             toaster.success({
                 title: "Signed in successfully",
