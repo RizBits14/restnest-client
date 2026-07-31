@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
     LayoutDashboard,
+    Building2,
     LoaderCircle,
     LogOut,
     Menu,
@@ -31,11 +32,36 @@ const roleLabels: Record<UserRole, string> = {
     ADMIN: "Administrator",
 };
 
-const overviewPaths: Record<UserRole, string> = {
-    TENANT: "/dashboard/tenant",
-    LANDLORD: "/dashboard/landlord",
-    ADMIN: "/dashboard/admin",
-};
+const dashboardNavigation = {
+    TENANT: [
+        {
+            label: "Overview",
+            href: "/dashboard/tenant",
+            icon: LayoutDashboard,
+        },
+    ],
+
+    LANDLORD: [
+        {
+            label: "Overview",
+            href: "/dashboard/landlord",
+            icon: LayoutDashboard,
+        },
+        {
+            label: "Properties",
+            href: "/dashboard/landlord/properties",
+            icon: Building2,
+        },
+    ],
+
+    ADMIN: [
+        {
+            label: "Overview",
+            href: "/dashboard/admin",
+            icon: LayoutDashboard,
+        },
+    ],
+} as const;
 
 type DashboardShellProps = Readonly<{
     user: AuthUser;
@@ -56,7 +82,7 @@ export function DashboardShell({
     const [isLoggingOut, setIsLoggingOut] =
         useState(false);
 
-    const overviewPath = overviewPaths[user.role];
+    const navigationItems = dashboardNavigation[user.role];
 
     async function handleLogout() {
         setIsLoggingOut(true);
@@ -93,29 +119,37 @@ export function DashboardShell({
     const navigation = (
         <nav
             aria-label="Dashboard navigation"
-            className="mt-8"
+            className="mt-8 space-y-1"
         >
-            <Link
-                href={overviewPath}
-                onClick={() => setIsSidebarOpen(false)}
-                aria-current={
-                    pathname === overviewPath
-                        ? "page"
-                        : undefined
-                }
-                className={
-                    pathname === overviewPath
-                        ? "flex items-center gap-3 rounded-xl bg-surface-muted px-4 py-3 text-sm font-semibold text-foreground"
-                        : "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-                }
-            >
-                <LayoutDashboard
-                    aria-hidden="true"
-                    className="size-5 text-brand"
-                />
+            {navigationItems.map((item) => {
+                const Icon = item.icon;
 
-                Overview
-            </Link>
+                const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/dashboard/landlord" &&
+                        pathname.startsWith(`${item.href}/`));
+
+                return (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsSidebarOpen(false)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={
+                            isActive
+                                ? "flex items-center gap-3 rounded-xl bg-surface-muted px-4 py-3 text-sm font-semibold text-foreground"
+                                : "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+                        }
+                    >
+                        <Icon
+                            aria-hidden="true"
+                            className="size-5 text-brand"
+                        />
+
+                        {item.label}
+                    </Link>
+                );
+            })}
         </nav>
     );
 
