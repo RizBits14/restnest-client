@@ -10,10 +10,12 @@ import {
     House,
     MapPin,
     Maximize2,
+    Plus,
     RefreshCw,
 } from "lucide-react";
-import Image from "next/image";
+import Link from "next/link";
 
+import { PropertyImage } from "@/components/properties/property-image";
 import { getLandlordProperties } from "@/lib/api/landlord-properties-client";
 import type {
     LandlordProperty,
@@ -34,11 +36,11 @@ const statusLabels: Record<PropertyStatus, string> = {
 
 const statusStyles: Record<PropertyStatus, string> = {
     AVAILABLE:
-        "border-emerald-700/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+        "border-emerald-700/30 bg-emerald-100 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-950 dark:text-emerald-200",
     RENTED:
-        "border-blue-700/20 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+        "border-blue-700/30 bg-blue-100 text-blue-900 dark:border-blue-400/40 dark:bg-blue-950 dark:text-blue-200",
     UNAVAILABLE:
-        "border-zinc-500/20 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300",
+        "border-zinc-600/30 bg-zinc-200 text-zinc-900 dark:border-zinc-400/40 dark:bg-zinc-800 dark:text-zinc-100",
 };
 
 function PropertyListSkeleton() {
@@ -97,6 +99,100 @@ function PropertySummary({
     );
 }
 
+type LandlordPropertyCardProps = Readonly<{
+    property: LandlordProperty;
+}>;
+
+function LandlordPropertyCard({
+    property,
+}: LandlordPropertyCardProps) {
+    const primaryImageUrl =
+        property.images?.find((imageUrl) => imageUrl.trim()) ?? null;
+
+    return (
+        <article className="overflow-hidden rounded-[1.75rem] border border-border bg-surface">
+            <div className="relative aspect-[16/9] overflow-hidden bg-surface-muted">
+                <PropertyImage
+                    key={primaryImageUrl ?? "property-placeholder"}
+                    imageUrl={primaryImageUrl}
+                    alt={`Rental property: ${property.title}`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    className="object-cover"
+                />
+
+                <span
+                    className={`absolute left-4 top-4 rounded-full border px-3 py-1 text-xs font-semibold shadow-sm ${statusStyles[property.status]}`}
+                >
+                    {statusLabels[property.status]}
+                </span>
+
+                <span className="absolute right-4 top-4 rounded-full border border-border bg-background/95 px-3 py-1 text-xs font-semibold text-foreground shadow-sm">
+                    {property.category.name}
+                </span>
+            </div>
+
+            <div className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <h2 className="line-clamp-1 text-lg font-semibold tracking-[-0.025em] text-foreground">
+                            {property.title}
+                        </h2>
+
+                        <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <MapPin
+                                aria-hidden="true"
+                                className="size-4 shrink-0 text-brand"
+                            />
+
+                            <span className="line-clamp-1">
+                                {property.location}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                        <p className="text-lg font-semibold text-brand">
+                            {currencyFormatter.format(property.price)}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            Total payment
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3 border-t border-border pt-4 text-sm text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                        <BedDouble
+                            aria-hidden="true"
+                            className="size-4 text-brand"
+                        />
+                        {property.bedrooms} beds
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5">
+                        <Bath
+                            aria-hidden="true"
+                            className="size-4 text-brand"
+                        />
+                        {property.bathrooms} baths
+                    </span>
+
+                    {property.area !== null && (
+                        <span className="inline-flex items-center gap-1.5">
+                            <Maximize2
+                                aria-hidden="true"
+                                className="size-4 text-brand"
+                            />
+                            {property.area} sq ft
+                        </span>
+                    )}
+                </div>
+            </div>
+        </article>
+    );
+}
+
 export function LandlordPropertiesPanel() {
     const {
         data: properties = [],
@@ -144,14 +240,24 @@ export function LandlordPropertiesPanel() {
                     </p>
                 </div>
 
-                {isFetching && !isLoading && (
-                    <p
-                        role="status"
-                        className="text-sm font-medium text-brand"
+                <div className="flex flex-col items-start gap-3 sm:items-end">
+                    {isFetching && !isLoading && (
+                        <p
+                            role="status"
+                            className="text-sm font-medium text-brand"
+                        >
+                            Updating properties...
+                        </p>
+                    )}
+
+                    <Link
+                        href="/dashboard/landlord/properties/new"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
                     >
-                        Updating properties...
-                    </p>
-                )}
+                        <Plus aria-hidden="true" className="size-4" />
+                        Add property
+                    </Link>
+                </div>
             </div>
 
             {isLoading ? (
@@ -239,6 +345,14 @@ export function LandlordPropertiesPanel() {
                                 Your property listings will appear here after you create
                                 your first rental property.
                             </p>
+
+                            <Link
+                                href="/dashboard/landlord/properties/new"
+                                className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
+                            >
+                                <Plus aria-hidden="true" className="size-4" />
+                                Create your first property
+                            </Link>
                         </div>
                     ) : (
                         <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -253,96 +367,5 @@ export function LandlordPropertiesPanel() {
                 </>
             )}
         </section>
-    );
-}
-
-type LandlordPropertyCardProps = Readonly<{
-    property: LandlordProperty;
-}>;
-
-function LandlordPropertyCard({
-    property,
-}: LandlordPropertyCardProps) {
-    return (
-        <article className="overflow-hidden rounded-[1.75rem] border border-border bg-surface">
-            <div className="relative aspect-[16/9] overflow-hidden bg-surface-muted">
-                <Image
-                    src="/property-placeholder.svg"
-                    alt={`Rental property placeholder for ${property.title}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                    className="object-cover"
-                />
-
-                <span
-                    className={`absolute left-4 top-4 rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[property.status]}`}
-                >
-                    {statusLabels[property.status]}
-                </span>
-
-                <span className="absolute right-4 top-4 rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold text-brand">
-                    {property.category.name}
-                </span>
-            </div>
-
-            <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                        <h2 className="line-clamp-1 text-lg font-semibold tracking-[-0.025em] text-foreground">
-                            {property.title}
-                        </h2>
-
-                        <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <MapPin
-                                aria-hidden="true"
-                                className="size-4 shrink-0 text-brand"
-                            />
-
-                            <span className="line-clamp-1">
-                                {property.location}
-                            </span>
-                        </p>
-                    </div>
-
-                    <div className="shrink-0 text-right">
-                        <p className="text-lg font-semibold text-brand">
-                            {currencyFormatter.format(property.price)}
-                        </p>
-
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                            Total payment
-                        </p>
-                    </div>
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3 border-t border-border pt-4 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5">
-                        <BedDouble
-                            aria-hidden="true"
-                            className="size-4 text-brand"
-                        />
-                        {property.bedrooms} beds
-                    </span>
-
-                    <span className="inline-flex items-center gap-1.5">
-                        <Bath
-                            aria-hidden="true"
-                            className="size-4 text-brand"
-                        />
-                        {property.bathrooms} baths
-                    </span>
-
-                    {property.area !== null && (
-                        <span className="inline-flex items-center gap-1.5">
-                            <Maximize2
-                                aria-hidden="true"
-                                className="size-4 text-brand"
-                            />
-                            {property.area} sq ft
-                        </span>
-                    )}
-                </div>
-            </div>
-        </article>
     );
 }
