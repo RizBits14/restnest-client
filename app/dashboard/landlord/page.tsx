@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import { RoleOverview } from "@/components/dashboard/role-overview";
+import { LandlordOverviewPanel } from "@/components/dashboard/landlord/landlord-overview-panel";
 
 export const metadata: Metadata = {
     title: "Landlord Dashboard",
 };
 
 export default function LandlordDashboardPage() {
-    return <RoleOverview role="LANDLORD" />;
+    return <LandlordOverviewPanel />;
 }
