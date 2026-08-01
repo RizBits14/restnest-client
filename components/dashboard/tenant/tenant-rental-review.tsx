@@ -6,7 +6,8 @@ import {
     useQueryClient,
 } from "@tanstack/react-query";
 import {
-    CircleCheck,
+    CheckCircle2,
+    CircleAlert,
     LoaderCircle,
     MessageSquareText,
     Send,
@@ -19,9 +20,7 @@ import {
 
 import { toaster } from "@/components/ui/app-toaster";
 import { propertyDetailsQueryKey } from "@/lib/api/property-details-client";
-import {
-    tenantRentalsQueryKey,
-} from "@/lib/api/tenant-rentals-client";
+import { tenantRentalsQueryKey } from "@/lib/api/tenant-rentals-client";
 import { createTenantReview } from "@/lib/api/tenant-reviews-client";
 import {
     rentalReviewSchema,
@@ -32,10 +31,9 @@ import type {
     TenantRentalRequest,
 } from "@/types/rental";
 
-const dateFormatter =
-    new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-    });
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+});
 
 const defaultValues: RentalReviewFormValues = {
     rating: 0,
@@ -50,29 +48,29 @@ function ReviewStars({
     rating,
 }: ReviewStarsProps) {
     return (
-        <div
+        <span
+            role="img"
             aria-label={`${rating} out of 5 stars`}
-            className="flex items-center gap-1"
+            className="inline-flex items-center gap-1"
         >
-            {Array.from(
-                { length: 5 },
-                (_, index) => {
-                    const starValue = index + 1;
+            {Array.from({ length: 5 }, (_, index) => {
+                const starValue = index + 1;
+                const isFilled = starValue <= rating;
 
-                    return (
-                        <Star
-                            key={starValue}
-                            aria-hidden="true"
-                            className={
-                                starValue <= rating
-                                    ? "size-4 fill-current text-brand"
-                                    : "size-4 text-muted-foreground/40"
-                            }
-                        />
-                    );
-                },
-            )}
-        </div>
+                return (
+                    <Star
+                        key={starValue}
+                        aria-hidden="true"
+                        className={[
+                            "size-4",
+                            isFilled
+                                ? "fill-warning text-warning"
+                                : "fill-transparent text-border-strong",
+                        ].join(" ")}
+                    />
+                );
+            })}
+        </span>
     );
 }
 
@@ -84,34 +82,48 @@ function SubmittedReview({
     review,
 }: SubmittedReviewProps) {
     return (
-        <div className="mt-5 rounded-xl border border-brand/25 bg-surface-muted p-4">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                        <CircleCheck
+        <div className="mt-4 overflow-hidden rounded-2xl border border-success/20 bg-success-soft">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-success/15 px-4 py-4">
+                <div className="flex items-start gap-3">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-success text-success-foreground">
+                        <CheckCircle2
                             aria-hidden="true"
-                            className="size-4 text-brand"
+                            className="size-5"
                         />
-                        Review submitted
-                    </p>
+                    </span>
 
-                    <div className="mt-2">
-                        <ReviewStars rating={review.rating} />
+                    <div>
+                        <p className="text-sm font-bold text-foreground">
+                            Review submitted
+                        </p>
+
+                        <div className="mt-1.5">
+                            <ReviewStars rating={review.rating} />
+                        </div>
                     </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
+                <time
+                    dateTime={review.createdAt}
+                    className="rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+                >
                     {dateFormatter.format(
                         new Date(review.createdAt),
                     )}
-                </p>
+                </time>
             </div>
 
-            {review.comment && (
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-                    {review.comment}
-                </p>
-            )}
+            <div className="px-4 py-4">
+                {review.comment ? (
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                        “{review.comment}”
+                    </p>
+                ) : (
+                    <p className="text-sm italic leading-6 text-muted-foreground">
+                        You submitted a rating without a written comment.
+                    </p>
+                )}
+            </div>
         </div>
     );
 }
@@ -129,20 +141,17 @@ export function TenantRentalReview({
         mutationFn: createTenantReview,
 
         onSuccess: (createdReview) => {
-            queryClient.setQueryData<
-                TenantRentalRequest[]
-            >(
+            queryClient.setQueryData<TenantRentalRequest[]>(
                 tenantRentalsQueryKey,
                 (currentRentals = []) =>
-                    currentRentals.map(
-                        (currentRental) =>
-                            currentRental.id === rental.id
-                                ? {
-                                    ...currentRental,
-                                    status: "COMPLETED",
-                                    review: createdReview,
-                                }
-                                : currentRental,
+                    currentRentals.map((currentRental) =>
+                        currentRental.id === rental.id
+                            ? {
+                                ...currentRental,
+                                status: "COMPLETED",
+                                review: createdReview,
+                            }
+                            : currentRental,
                     ),
             );
 
@@ -181,9 +190,7 @@ export function TenantRentalReview({
             isSubmitting,
         },
     } = useForm<RentalReviewFormValues>({
-        resolver: zodResolver(
-            rentalReviewSchema,
-        ),
+        resolver: zodResolver(rentalReviewSchema),
         defaultValues,
     });
 
@@ -193,14 +200,34 @@ export function TenantRentalReview({
             name: "rating",
         }) ?? 0;
 
+    const reviewComment =
+        useWatch({
+            control,
+            name: "comment",
+        }) ?? "";
+
     const isEligible =
         rental.status === "ACTIVE" &&
         rental.payment?.status === "COMPLETED" &&
         !rental.review;
 
     const isPending =
-        isSubmitting ||
-        reviewMutation.isPending;
+        isSubmitting || reviewMutation.isPending;
+
+    const ratingLabelId =
+        `review-rating-label-${rental.id}`;
+
+    const ratingErrorId =
+        `review-rating-error-${rental.id}`;
+
+    const commentId =
+        `review-comment-${rental.id}`;
+
+    const commentHelpId =
+        `review-comment-help-${rental.id}`;
+
+    const commentErrorId =
+        `review-comment-error-${rental.id}`;
 
     async function onSubmit(
         values: RentalReviewFormValues,
@@ -234,9 +261,7 @@ export function TenantRentalReview({
 
     if (rental.review) {
         return (
-            <SubmittedReview
-                review={rental.review}
-            />
+            <SubmittedReview review={rental.review} />
         );
     }
 
@@ -248,52 +273,79 @@ export function TenantRentalReview({
         <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate
-            className="mt-5 rounded-xl border border-border bg-background p-4"
+            className="mt-4 overflow-hidden rounded-2xl border border-warning/20 bg-warning-soft"
         >
-            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <MessageSquareText
-                    aria-hidden="true"
-                    className="size-4 text-brand"
-                />
-                Leave a review
-            </p>
+            <div className="border-b border-warning/15 px-4 py-4">
+                <div className="flex items-start gap-3">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-warning text-warning-foreground">
+                        <MessageSquareText
+                            aria-hidden="true"
+                            className="size-5"
+                        />
+                    </span>
 
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Share your experience with this property.
-            </p>
+                    <div>
+                        <p className="text-sm font-bold text-foreground">
+                            Share your experience
+                        </p>
 
-            {errors.root && (
-                <div
-                    role="alert"
-                    className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200"
-                >
-                    {errors.root.message}
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            Your review will appear on this property’s
+                            public details page.
+                        </p>
+                    </div>
                 </div>
-            )}
+            </div>
 
-            <div className="mt-5">
-                <p
-                    id={`review-rating-label-${rental.id}`}
-                    className="text-sm font-medium text-foreground"
-                >
-                    Rating
-                </p>
+            <div className="p-4">
+                {errors.root && (
+                    <div
+                        role="alert"
+                        className="mb-5 flex items-start gap-3 rounded-xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm leading-6 text-danger"
+                    >
+                        <CircleAlert
+                            aria-hidden="true"
+                            className="mt-1 size-4 shrink-0"
+                        />
 
-                <input
-                    type="hidden"
-                    {...register("rating", {
-                        valueAsNumber: true,
-                    })}
-                />
+                        <p>{errors.root.message}</p>
+                    </div>
+                )}
 
-                <div
-                    role="radiogroup"
-                    aria-labelledby={`review-rating-label-${rental.id}`}
-                    className="mt-2 flex items-center gap-1"
-                >
-                    {Array.from(
-                        { length: 5 },
-                        (_, index) => {
+                <div>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p
+                            id={ratingLabelId}
+                            className="text-sm font-bold text-foreground"
+                        >
+                            Your rating
+                        </p>
+
+                        <span className="rounded-full bg-surface px-3 py-1 text-xs font-bold text-warning">
+                            {selectedRating > 0
+                                ? `${selectedRating} / 5`
+                                : "Not selected"}
+                        </span>
+                    </div>
+
+                    <input
+                        type="hidden"
+                        {...register("rating", {
+                            valueAsNumber: true,
+                        })}
+                    />
+
+                    <div
+                        role="radiogroup"
+                        aria-labelledby={ratingLabelId}
+                        aria-describedby={
+                            errors.rating
+                                ? ratingErrorId
+                                : undefined
+                        }
+                        className="mt-3 flex items-center gap-1"
+                    >
+                        {Array.from({ length: 5 }, (_, index) => {
                             const rating = index + 1;
                             const isSelected =
                                 selectedRating >= rating;
@@ -306,95 +358,135 @@ export function TenantRentalReview({
                                     aria-checked={
                                         selectedRating === rating
                                     }
-                                    aria-label={`${rating} ${rating === 1
-                                        ? "star"
-                                        : "stars"
+                                    aria-label={`${rating} ${rating === 1 ? "star" : "stars"
                                         }`}
+                                    disabled={isPending}
                                     onClick={() => {
-                                        setValue(
-                                            "rating",
-                                            rating,
-                                            {
-                                                shouldDirty: true,
-                                                shouldValidate: true,
-                                            },
-                                        );
+                                        setValue("rating", rating, {
+                                            shouldDirty: true,
+                                            shouldValidate: true,
+                                        });
                                     }}
-                                    className="grid size-10 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-muted hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                    className={[
+                                        "grid size-11 place-items-center rounded-xl transition-colors duration-200",
+                                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-warning-soft",
+                                        "disabled:cursor-wait disabled:opacity-60",
+                                        isSelected
+                                            ? "bg-surface text-warning"
+                                            : "text-muted-foreground hover:bg-surface hover:text-warning",
+                                    ].join(" ")}
                                 >
                                     <Star
                                         aria-hidden="true"
-                                        className={
+                                        className={[
+                                            "size-6",
                                             isSelected
-                                                ? "size-6 fill-current text-brand"
-                                                : "size-6"
-                                        }
+                                                ? "fill-warning text-warning"
+                                                : "fill-transparent",
+                                        ].join(" ")}
                                     />
                                 </button>
                             );
-                        },
+                        })}
+                    </div>
+
+                    {errors.rating && (
+                        <p
+                            id={ratingErrorId}
+                            role="alert"
+                            className="mt-2 text-sm font-medium text-danger"
+                        >
+                            {errors.rating.message}
+                        </p>
                     )}
                 </div>
 
-                {errors.rating && (
-                    <p className="mt-1.5 text-sm text-red-700 dark:text-red-300">
-                        {errors.rating.message}
-                    </p>
-                )}
-            </div>
+                <div className="mt-5">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                        <label
+                            htmlFor={commentId}
+                            className="text-sm font-bold text-foreground"
+                        >
+                            Written review
+                        </label>
 
-            <div className="mt-5">
-                <label
-                    htmlFor={`review-comment-${rental.id}`}
-                    className="mb-2 block text-sm font-medium text-foreground"
-                >
-                    Comment{" "}
-                    <span className="text-muted-foreground">
-                        (optional)
-                    </span>
-                </label>
+                        <span className="text-xs font-medium text-muted-foreground">
+                            Optional
+                        </span>
+                    </div>
 
-                <textarea
-                    id={`review-comment-${rental.id}`}
-                    rows={4}
-                    placeholder="What did you like or dislike about this property?"
-                    aria-invalid={Boolean(
-                        errors.comment,
+                    <textarea
+                        id={commentId}
+                        rows={4}
+                        maxLength={1_000}
+                        placeholder="What did you like or dislike about this property?"
+                        disabled={isPending}
+                        aria-invalid={Boolean(errors.comment)}
+                        aria-describedby={
+                            errors.comment
+                                ? commentErrorId
+                                : commentHelpId
+                        }
+                        {...register("comment")}
+                        className={[
+                            "min-h-28 w-full resize-y rounded-xl border bg-surface px-4 py-3 text-sm leading-6 text-foreground outline-none",
+                            "transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-muted-foreground/70",
+                            "hover:border-border-strong focus:border-focus focus:ring-4 focus:ring-focus/10",
+                            "disabled:cursor-wait disabled:opacity-60",
+                            errors.comment
+                                ? "border-danger focus:border-danger focus:ring-danger/10"
+                                : "border-border",
+                        ].join(" ")}
+                    />
+
+                    {errors.comment ? (
+                        <p
+                            id={commentErrorId}
+                            role="alert"
+                            className="mt-2 text-sm font-medium text-danger"
+                        >
+                            {errors.comment.message}
+                        </p>
+                    ) : (
+                        <div
+                            id={commentHelpId}
+                            className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground"
+                        >
+                            <span>
+                                Keep your feedback clear and respectful.
+                            </span>
+
+                            <span className="shrink-0 font-semibold">
+                                {reviewComment.length}/1000
+                            </span>
+                        </div>
                     )}
-                    {...register("comment")}
-                    className="w-full resize-y rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-6 text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-focus"
-                />
+                </div>
 
-                {errors.comment && (
-                    <p className="mt-1.5 text-sm text-red-700 dark:text-red-300">
-                        {errors.comment.message}
-                    </p>
-                )}
+                <button
+                    type="submit"
+                    disabled={isPending}
+                    className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active disabled:cursor-wait disabled:opacity-60"
+                >
+                    {isPending ? (
+                        <>
+                            <LoaderCircle
+                                aria-hidden="true"
+                                className="size-4 animate-spin"
+                            />
+                            Submitting review...
+                        </>
+                    ) : (
+                        <>
+                            <Send
+                                aria-hidden="true"
+                                className="size-4"
+                            />
+                            Publish review
+                        </>
+                    )}
+                </button>
             </div>
-
-            <button
-                type="submit"
-                disabled={isPending}
-                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
-            >
-                {isPending ? (
-                    <>
-                        <LoaderCircle
-                            aria-hidden="true"
-                            className="size-4 animate-spin"
-                        />
-                        Submitting review...
-                    </>
-                ) : (
-                    <>
-                        <Send
-                            aria-hidden="true"
-                            className="size-4"
-                        />
-                        Submit review
-                    </>
-                )}
-            </button>
         </form>
     );
 }

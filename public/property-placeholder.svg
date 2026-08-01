@@ -1,13 +1,130 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none">
-  <rect width="1200" height="800" fill="#EAE5DC"></rect>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="placeholder-title placeholder-description">
+  <title id="placeholder-title">
+    RESTNEST property image placeholder
+  </title>
 
-  <rect x="140" y="155" width="920" height="500" rx="48" fill="#D8DED5"></rect>
+  <desc id="placeholder-description">
+    A minimalist illustration of a rental home displayed when a property image is unavailable.
+  </desc>
 
-  <path d="M355 412L600 220L845 412V620H355V412Z" fill="#F6F2EA" stroke="#355C4B" stroke-width="20" stroke-linejoin="round"></path>
+  <style>
+    .background {
+      fill: #f3eee4;
+    }
 
-  <path d="M505 620V465H695V620" stroke="#355C4B" stroke-width="20" stroke-linejoin="round"></path>
+    .panel {
+      fill: #faf8f3;
+      stroke: #d7d0c4;
+    }
 
-  <rect x="740" y="445" width="70" height="70" rx="8" stroke="#355C4B" stroke-width="18"></rect>
+    .brand-soft {
+      fill: #dce8e2;
+    }
 
-  <circle cx="260" cy="250" r="58" fill="#A9B9AA"></circle>
+    .accent-soft {
+      fill: #f1d8c9;
+    }
+
+    .brand {
+      fill: #2f6f62;
+    }
+
+    .brand-stroke {
+      fill: none;
+      stroke: #2f6f62;
+    }
+
+    .accent {
+      fill: #c66f4e;
+    }
+
+    .foreground {
+      fill: #272923;
+    }
+
+    .muted {
+      fill: #74766e;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .background {
+        fill: #181b18;
+      }
+
+      .panel {
+        fill: #222621;
+        stroke: #373d36;
+      }
+
+      .brand-soft {
+        fill: #263a34;
+      }
+
+      .accent-soft {
+        fill: #3f2f28;
+      }
+
+      .brand {
+        fill: #83b4a6;
+      }
+
+      .brand-stroke {
+        stroke: #83b4a6;
+      }
+
+      .accent {
+        fill: #db9476;
+      }
+
+      .foreground {
+        fill: #f1eee7;
+      }
+
+      .muted {
+        fill: #a9ada4;
+      }
+    }
+  </style>
+
+  <rect class="background" width="1200" height="800"></rect>
+
+  <circle class="brand-soft" cx="158" cy="132" r="190"></circle>
+
+  <circle class="accent-soft" cx="1086" cy="698" r="228"></circle>
+
+  <rect class="panel" x="176" y="116" width="848" height="568" rx="54" stroke-width="4"></rect>
+
+  <g transform="translate(430 205)">
+    <rect class="brand-soft" width="340" height="280" rx="58"></rect>
+
+    <path class="brand-stroke" d="M82 144 170 70l88 74" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path>
+
+    <path class="brand-stroke" d="M108 132v92h124v-92" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path>
+
+    <rect class="accent" x="151" y="165" width="38" height="59" rx="10"></rect>
+
+    <rect class="brand" x="121" y="151" width="28" height="29" rx="7"></rect>
+
+    <rect class="brand" x="191" y="151" width="28" height="29" rx="7"></rect>
+
+    <circle class="accent" cx="272" cy="72" r="15"></circle>
+  </g>
+
+  <text class="foreground" x="600" y="548" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" letter-spacing="-1">
+    Property image unavailable
+  </text>
+
+  <text class="muted" x="600" y="594" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22">
+    RESTNEST rental marketplace
+  </text>
+
+  <g transform="translate(519 626)">
+    <rect class="brand-soft" width="162" height="42" rx="21"></rect>
+
+    <circle class="accent" cx="28" cy="21" r="6"></circle>
+
+    <text class="brand" x="46" y="28" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.2">
+      RESTNEST
+    </text>
+  </g>
 </svg>

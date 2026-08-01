@@ -192,6 +192,12 @@ export function PropertyCardActions({
         },
     });
 
+    const isUpdating =
+        updateStatusMutation.isPending;
+
+    const isDeleting =
+        deletePropertyMutation.isPending;
+
     function handleAvailabilityChange() {
         if (!nextAvailabilityStatus) {
             return;
@@ -206,65 +212,64 @@ export function PropertyCardActions({
         deletePropertyMutation.mutate();
     }
 
-    const isUpdating =
-        updateStatusMutation.isPending;
-
-    const isDeleting =
-        deletePropertyMutation.isPending;
-
     return (
-        <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
-            <Link
-                href={`/dashboard/landlord/properties/${property.id}/edit`}
-                className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
-            >
-                <Pencil
-                    aria-hidden="true"
-                    className="size-4 text-brand"
-                />
-                Edit
-            </Link>
-            {nextAvailabilityStatus ? (
-                <button
-                    type="button"
-                    onClick={handleAvailabilityChange}
-                    disabled={isUpdating || isDeleting}
-                    className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted disabled:cursor-wait disabled:opacity-60"
+        <div className="space-y-3 border-t border-border pt-5">
+            <div className="grid gap-2 sm:grid-cols-2">
+                <Link
+                    href={`/dashboard/landlord/properties/${property.id}/edit`}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
                 >
-                    {isUpdating ? (
-                        <LoaderCircle
-                            aria-hidden="true"
-                            className="size-4 animate-spin"
-                        />
-                    ) : nextAvailabilityStatus ===
-                        "AVAILABLE" ? (
-                        <CircleCheck
-                            aria-hidden="true"
-                            className="size-4 text-brand"
-                        />
-                    ) : (
-                        <CircleOff
-                            aria-hidden="true"
-                            className="size-4 text-brand"
-                        />
-                    )}
-
-                    {isUpdating
-                        ? "Updating..."
-                        : nextAvailabilityStatus ===
-                            "AVAILABLE"
-                            ? "Make available"
-                            : "Mark unavailable"}
-                </button>
-            ) : (
-                <div className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-4 text-sm font-medium text-muted-foreground">
-                    <LockKeyhole
+                    <Pencil
                         aria-hidden="true"
                         className="size-4"
                     />
-                    Availability managed by rental
-                </div>
-            )}
+
+                    Edit property
+                </Link>
+
+                {nextAvailabilityStatus ? (
+                    <button
+                        type="button"
+                        onClick={handleAvailabilityChange}
+                        disabled={isUpdating || isDeleting}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand disabled:cursor-wait disabled:opacity-60"
+                    >
+                        {isUpdating ? (
+                            <LoaderCircle
+                                aria-hidden="true"
+                                className="size-4 animate-spin"
+                            />
+                        ) : nextAvailabilityStatus ===
+                            "AVAILABLE" ? (
+                            <CircleCheck
+                                aria-hidden="true"
+                                className="size-4 text-success"
+                            />
+                        ) : (
+                            <CircleOff
+                                aria-hidden="true"
+                                className="size-4 text-muted-foreground"
+                            />
+                        )}
+
+                        {isUpdating
+                            ? "Updating..."
+                            : nextAvailabilityStatus ===
+                                "AVAILABLE"
+                                ? "Make available"
+                                : "Mark unavailable"}
+                    </button>
+                ) : (
+                    <div className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-4 text-center text-xs font-semibold leading-5 text-muted-foreground">
+                        <LockKeyhole
+                            aria-hidden="true"
+                            className="size-4 shrink-0"
+                        />
+
+                        Availability managed by rental
+                    </div>
+                )}
+            </div>
 
             <Dialog.Root
                 role="alertdialog"
@@ -278,84 +283,107 @@ export function PropertyCardActions({
             >
                 <Dialog.Trigger
                     disabled={isUpdating || isDeleting}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-700/30 bg-surface px-4 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:border-red-700/50 hover:bg-red-50 hover:text-red-800 disabled:cursor-wait disabled:opacity-60 dark:border-red-400/30 dark:bg-surface dark:text-red-6600 dark:hover:border-red-400/50 dark:hover:bg-red-950/40 dark:hover:text-red-6600"
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-danger/25 bg-background px-4 text-sm font-bold text-danger transition-colors duration-200 hover:border-danger/40 hover:bg-danger-soft disabled:cursor-wait disabled:opacity-60"
                 >
                     <Trash2
                         aria-hidden="true"
                         className="size-4"
                     />
-                    Delete
+
+                    Delete property
                 </Dialog.Trigger>
 
                 <Portal>
-                    <Dialog.Backdrop className="fixed inset-0 z-[80] bg-foreground/25 backdrop-blur-sm" />
+                    <Dialog.Backdrop className="fixed inset-0 z-[80] bg-overlay backdrop-blur-sm" />
 
                     <Dialog.Positioner className="fixed inset-0 z-[81] grid place-items-center overflow-y-auto p-4">
-                        <Dialog.Content className="w-full max-w-md rounded-[1.75rem] border border-border bg-surface p-6 shadow-[0_24px_80px_rgba(20,30,24,0.24)] sm:p-7">
-                            <div className="flex items-start justify-between gap-4">
-                                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200">
-                                    <TriangleAlert
-                                        aria-hidden="true"
-                                        className="size-5"
-                                    />
-                                </span>
+                        <Dialog.Content className="w-full max-w-md overflow-hidden rounded-[2rem] border border-border bg-surface shadow-raised">
+                            <div className="border-b border-border bg-danger-soft p-6 sm:p-7">
+                                <div className="flex items-start justify-between gap-5">
+                                    <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-danger text-danger-foreground">
+                                        <TriangleAlert
+                                            aria-hidden="true"
+                                            className="size-6"
+                                        />
+                                    </span>
 
-                                <Dialog.CloseTrigger
-                                    disabled={isDeleting}
-                                    aria-label="Close delete confirmation"
-                                    className="grid size-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground disabled:cursor-wait disabled:opacity-60"
-                                >
-                                    <X
-                                        aria-hidden="true"
-                                        className="size-4"
-                                    />
-                                </Dialog.CloseTrigger>
+                                    <Dialog.CloseTrigger
+                                        disabled={isDeleting}
+                                        aria-label="Close delete confirmation"
+                                        className="grid size-10 place-items-center rounded-xl border border-danger/15 bg-surface text-muted-foreground transition-colors duration-200 hover:text-danger disabled:cursor-wait disabled:opacity-60"
+                                    >
+                                        <X
+                                            aria-hidden="true"
+                                            className="size-4"
+                                        />
+                                    </Dialog.CloseTrigger>
+                                </div>
+
+                                <p className="mt-6 text-xs font-bold uppercase tracking-[0.14em] text-danger">
+                                    Permanent action
+                                </p>
+
+                                <Dialog.Title className="mt-2 text-2xl font-bold tracking-[-0.035em] text-foreground">
+                                    Delete this property?
+                                </Dialog.Title>
                             </div>
 
-                            <Dialog.Title className="mt-5 text-xl font-semibold tracking-[-0.025em] text-foreground">
-                                Delete this property?
-                            </Dialog.Title>
+                            <div className="p-6 sm:p-7">
+                                <Dialog.Description className="text-sm leading-7 text-muted-foreground">
+                                    <strong className="font-bold text-foreground">
+                                        {property.title}
+                                    </strong>{" "}
+                                    will be permanently removed from your
+                                    dashboard and the public RESTNEST
+                                    marketplace.
+                                </Dialog.Description>
 
-                            <Dialog.Description className="mt-2 text-sm leading-6 text-muted-foreground">
-                                <span className="font-semibold text-foreground">
-                                    {property.title}
-                                </span>{" "}
-                                will be permanently removed. This action
-                                cannot be undone.
-                            </Dialog.Description>
+                                <div className="mt-5 rounded-xl border border-danger/20 bg-danger-soft px-4 py-3">
+                                    <p className="text-sm font-bold text-danger">
+                                        This action cannot be undone.
+                                    </p>
 
-                            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                                <Dialog.CloseTrigger
-                                    disabled={isDeleting}
-                                    className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted disabled:cursor-wait disabled:opacity-60"
-                                >
-                                    Cancel
-                                </Dialog.CloseTrigger>
+                                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                        Confirm that this listing is no longer
+                                        required before deleting it.
+                                    </p>
+                                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={handleDelete}
-                                    disabled={isDeleting}
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-700 px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60 dark:bg-red-600"
-                                >
-                                    {isDeleting ? (
-                                        <>
-                                            <LoaderCircle
-                                                aria-hidden="true"
-                                                className="size-4 animate-spin"
-                                            />
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2
-                                                aria-hidden="true"
-                                                className="size-4"
-                                            />
-                                            Delete property
-                                        </>
-                                    )}
-                                </button>
+                                <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                                    <Dialog.CloseTrigger
+                                        disabled={isDeleting}
+                                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-bold text-foreground transition-colors duration-200 hover:bg-surface-muted disabled:cursor-wait disabled:opacity-60"
+                                    >
+                                        Keep property
+                                    </Dialog.CloseTrigger>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        disabled={isDeleting}
+                                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-danger px-5 text-sm font-bold text-danger-foreground transition-opacity duration-200 hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <LoaderCircle
+                                                    aria-hidden="true"
+                                                    className="size-4 animate-spin"
+                                                />
+
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Trash2
+                                                    aria-hidden="true"
+                                                    className="size-4"
+                                                />
+
+                                                Delete permanently
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </Dialog.Content>
                     </Dialog.Positioner>

@@ -3,7 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
     Building2,
+    LoaderCircle,
     RefreshCw,
+    Search,
+    SlidersHorizontal,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -31,6 +34,12 @@ function createAppliedFilters(
             ? Number(values.maxPrice)
             : undefined,
     };
+}
+
+function getActiveFilterCount(filters: PropertyFilters) {
+    return Object.values(filters).filter(
+        (value) => value !== undefined,
+    ).length;
 }
 
 export function PropertiesBrowser() {
@@ -67,6 +76,9 @@ export function PropertiesBrowser() {
         placeholderData: (previousData) => previousData,
     });
 
+    const activeFilterCount =
+        getActiveFilterCount(appliedFilters);
+
     const errorMessage =
         error instanceof ApiError
             ? error.message
@@ -90,122 +102,218 @@ export function PropertiesBrowser() {
     }
 
     return (
-        <section className="py-14 sm:py-18 lg:py-20">
+        <section
+            aria-labelledby="properties-page-title"
+            className="bg-background py-14 sm:py-18 lg:py-20"
+        >
             <div className="mx-auto w-full max-w-[88rem] px-4 sm:px-6 lg:px-8">
-                <div className="border-b border-border pb-9">
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                        Available rentals
-                    </p>
-
-                    <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl">
-                        Find the property that fits your next chapter.
-                    </h1>
-
-                    <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                        Browse currently available properties with transparent pricing
-                        and essential rental information.
-                    </p>
-                </div>
-
-                <div className="mt-8">
-                    <PropertyFilterForm
-                        categories={categories}
-                        isCategoriesLoading={isCategoriesLoading}
-                        categoryErrorMessage={categoryErrorMessage}
-                        isUpdating={isFetching && !isLoading}
-                        onApply={handleApplyFilters}
-                        onReset={handleResetFilters}
-                    />
-                </div>
-
-                {isLoading ? (
+                <header className="relative overflow-hidden rounded-[2rem] border border-border bg-surface p-6 shadow-soft sm:p-9 lg:p-11">
                     <div
-                        aria-label="Loading available properties"
-                        className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3"
-                    >
-                        {Array.from({ length: 6 }, (_, index) => (
-                            <PropertyCardSkeleton key={index} />
-                        ))}
-                    </div>
-                ) : error ? (
-                    <div className="mt-10 rounded-[2rem] border border-border bg-surface p-8 text-center sm:p-12">
-                        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-surface-muted text-brand">
-                            <RefreshCw aria-hidden="true" className="size-6" />
-                        </span>
+                        aria-hidden="true"
+                        className="absolute right-0 top-0 hidden h-full w-24 rounded-l-[3rem] bg-brand-soft/70 lg:block"
+                    />
 
-                        <h2 className="mt-5 text-xl font-semibold text-foreground">
-                            Properties could not be loaded
-                        </h2>
+                    <div className="relative max-w-3xl">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">
+                            <Search
+                                aria-hidden="true"
+                                className="size-3.5"
+                            />
+                            Available rentals
+                        </div>
 
-                        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                            {errorMessage}
+                        <h1
+                            id="properties-page-title"
+                            className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[3.5rem]"
+                        >
+                            Find a property for your
+                            <span className="block text-brand">
+                                next chapter.
+                            </span>
+                        </h1>
+
+                        <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+                            Browse available homes with clear pricing,
+                            essential details, and practical filters that help
+                            narrow your search.
                         </p>
-
-                        <button
-                            type="button"
-                            onClick={() => refetch()}
-                            disabled={isFetching}
-                            className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity duration-200 hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
-                        >
-                            {isFetching ? "Trying again..." : "Try again"}
-                        </button>
                     </div>
-                ) : properties.length === 0 ? (
-                    <div className="mt-10 rounded-[2rem] border border-border bg-surface p-8 text-center sm:p-12">
-                        <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-surface-muted text-brand">
-                            <Building2 aria-hidden="true" className="size-7" />
-                        </span>
+                </header>
 
-                        <h2 className="mt-5 text-xl font-semibold tracking-[-0.025em] text-foreground">
-                            No matching properties found
-                        </h2>
+                <div className="mt-8 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-soft">
+                    <div className="flex flex-col gap-4 border-b border-border bg-surface-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                        <div className="flex items-center gap-3">
+                            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
+                                <SlidersHorizontal
+                                    aria-hidden="true"
+                                    className="size-5"
+                                />
+                            </span>
 
-                        <p className="mx-auto mt-2 max-w-lg leading-7 text-muted-foreground">
-                            Try changing or clearing the filters. New listings will
-                            appear here when landlords make them available.
-                        </p>
+                            <div>
+                                <h2 className="font-bold text-foreground">
+                                    Refine your search
+                                </h2>
 
-                        <button
-                            type="button"
-                            onClick={handleResetFilters}
-                            className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-surface-muted"
-                        >
-                            Clear applied filters
-                        </button>
-                    </div>
-                ) : (
-                    <>
-                        <div
-                            aria-live="polite"
-                            className="mt-8 flex items-center justify-between gap-4"
-                        >
-                            <p className="text-sm text-muted-foreground">
-                                <span className="font-semibold text-foreground">
-                                    {properties.length}
-                                </span>{" "}
-                                {properties.length === 1
-                                    ? "property"
-                                    : "properties"}{" "}
-                                available
-                            </p>
-
-                            {isFetching && (
-                                <p className="text-sm font-medium text-brand">
-                                    Updating results...
+                                <p className="mt-0.5 text-sm text-muted-foreground">
+                                    Filter by location, category, and price.
                                 </p>
+                            </div>
+                        </div>
+
+                        {activeFilterCount > 0 && (
+                            <span className="w-fit rounded-full bg-accent-soft px-3 py-1.5 text-xs font-bold text-accent">
+                                {activeFilterCount}{" "}
+                                {activeFilterCount === 1
+                                    ? "filter"
+                                    : "filters"}{" "}
+                                applied
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="p-5 sm:p-6">
+                        <PropertyFilterForm
+                            categories={categories}
+                            isCategoriesLoading={isCategoriesLoading}
+                            categoryErrorMessage={categoryErrorMessage}
+                            isUpdating={isFetching && !isLoading}
+                            onApply={handleApplyFilters}
+                            onReset={handleResetFilters}
+                        />
+                    </div>
+                </div>
+
+                <div
+                    aria-busy={isLoading || isFetching}
+                    className="mt-10"
+                >
+                    {isLoading ? (
+                        <div
+                            aria-label="Loading available properties"
+                            className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
+                        >
+                            {Array.from(
+                                { length: 6 },
+                                (_, index) => (
+                                    <PropertyCardSkeleton key={index} />
+                                ),
                             )}
                         </div>
+                    ) : error ? (
+                        <div
+                            role="alert"
+                            className="rounded-[2rem] border border-danger/20 bg-surface p-7 shadow-soft sm:p-10"
+                        >
+                            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                    <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-danger-soft text-danger">
+                                        <RefreshCw
+                                            aria-hidden="true"
+                                            className={`size-6 ${isFetching ? "animate-spin" : ""
+                                                }`}
+                                        />
+                                    </span>
 
-                        <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                            {properties.map((property) => (
-                                <PropertyCard
-                                    key={property.id}
-                                    property={property}
-                                />
-                            ))}
+                                    <div>
+                                        <h2 className="text-xl font-bold tracking-[-0.025em] text-foreground">
+                                            Properties could not be loaded
+                                        </h2>
+
+                                        <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                                            {errorMessage}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => void refetch()}
+                                    disabled={isFetching}
+                                    className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active disabled:cursor-wait disabled:opacity-60"
+                                >
+                                    {isFetching && (
+                                        <LoaderCircle
+                                            aria-hidden="true"
+                                            className="size-4 animate-spin"
+                                        />
+                                    )}
+
+                                    {isFetching
+                                        ? "Trying again"
+                                        : "Try again"}
+                                </button>
+                            </div>
                         </div>
-                    </>
-                )}
+                    ) : properties.length === 0 ? (
+                        <div className="rounded-[2rem] border border-border bg-surface p-7 text-center shadow-soft sm:p-12">
+                            <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-brand-soft text-brand">
+                                <Building2
+                                    aria-hidden="true"
+                                    className="size-7"
+                                />
+                            </span>
+
+                            <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                                No results this time
+                            </p>
+
+                            <h2 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-foreground">
+                                No matching properties found
+                            </h2>
+
+                            <p className="mx-auto mt-3 max-w-lg leading-7 text-muted-foreground">
+                                Try changing or clearing your filters. New
+                                listings will appear here when landlords make
+                                them available.
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={handleResetFilters}
+                                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface-subtle px-5 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
+                            >
+                                Clear applied filters
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <div
+                                aria-live="polite"
+                                className="flex flex-col gap-3 rounded-2xl border border-border bg-surface-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+                            >
+                                <p className="text-sm text-muted-foreground">
+                                    <span className="font-bold text-foreground">
+                                        {properties.length}
+                                    </span>{" "}
+                                    {properties.length === 1
+                                        ? "property"
+                                        : "properties"}{" "}
+                                    available
+                                </p>
+
+                                {isFetching && (
+                                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
+                                        <LoaderCircle
+                                            aria-hidden="true"
+                                            className="size-4 animate-spin"
+                                        />
+                                        Updating results
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                                {properties.map((property) => (
+                                    <PropertyCard
+                                        key={property.id}
+                                        property={property}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </section>
     );

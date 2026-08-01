@@ -10,6 +10,7 @@ import {
     Clock3,
     CreditCard,
     House,
+    LoaderCircle,
     MapPin,
     RefreshCw,
     Star,
@@ -46,18 +47,48 @@ const rentalStatusLabels: Record<RentalStatus, string> = {
 };
 
 const rentalStatusStyles: Record<RentalStatus, string> = {
-    PENDING:
-        "border-amber-700/25 bg-amber-100 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950 dark:text-amber-200",
-    APPROVED:
-        "border-blue-700/25 bg-blue-100 text-blue-900 dark:border-blue-400/30 dark:bg-blue-950 dark:text-blue-200",
-    REJECTED:
-        "border-red-700/25 bg-red-100 text-red-900 dark:border-red-400/30 dark:bg-red-950 dark:text-red-200",
-    ACTIVE:
-        "border-emerald-700/25 bg-emerald-100 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-200",
-    COMPLETED:
-        "border-violet-700/25 bg-violet-100 text-violet-900 dark:border-violet-400/30 dark:bg-violet-950 dark:text-violet-200",
-    CANCELLED:
-        "border-zinc-600/25 bg-zinc-200 text-zinc-900 dark:border-zinc-400/30 dark:bg-zinc-800 dark:text-zinc-100",
+    PENDING: "bg-warning-soft text-warning",
+    APPROVED: "bg-info-soft text-info",
+    REJECTED: "bg-danger-soft text-danger",
+    ACTIVE: "bg-success-soft text-success",
+    COMPLETED: "bg-brand-soft text-brand",
+    CANCELLED: "bg-surface-muted text-muted-foreground",
+};
+
+type SummaryTone =
+    | "brand"
+    | "warning"
+    | "info"
+    | "success"
+    | "accent";
+
+const summaryToneStyles: Record<
+    SummaryTone,
+    Readonly<{
+        icon: string;
+        value: string;
+    }>
+> = {
+    brand: {
+        icon: "bg-brand-soft text-brand",
+        value: "text-brand",
+    },
+    warning: {
+        icon: "bg-warning-soft text-warning",
+        value: "text-warning",
+    },
+    info: {
+        icon: "bg-info-soft text-info",
+        value: "text-info",
+    },
+    success: {
+        icon: "bg-success-soft text-success",
+        value: "text-success",
+    },
+    accent: {
+        icon: "bg-accent-soft text-accent",
+        value: "text-accent",
+    },
 };
 
 type SummaryCardProps = Readonly<{
@@ -65,6 +96,7 @@ type SummaryCardProps = Readonly<{
     value: number;
     description: string;
     icon: LucideIcon;
+    tone: SummaryTone;
 }>;
 
 function SummaryCard({
@@ -72,27 +104,31 @@ function SummaryCard({
     value,
     description,
     icon: Icon,
+    tone,
 }: SummaryCardProps) {
+    const toneStyle = summaryToneStyles[tone];
+
     return (
-        <article className="rounded-2xl border border-border bg-surface p-5">
+        <article className="group rounded-[1.5rem] border border-border bg-surface p-5 shadow-soft transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-raised">
             <div className="flex items-start justify-between gap-4">
-                <span className="grid size-11 place-items-center rounded-xl bg-surface-muted text-brand">
-                    <Icon
-                        aria-hidden="true"
-                        className="size-5"
-                    />
+                <span
+                    className={`grid size-11 shrink-0 place-items-center rounded-xl ${toneStyle.icon}`}
+                >
+                    <Icon aria-hidden="true" className="size-5" />
                 </span>
 
-                <p className="text-3xl font-semibold tracking-[-0.05em] text-foreground">
+                <p
+                    className={`text-3xl font-bold tracking-[-0.05em] ${toneStyle.value}`}
+                >
                     {value}
                 </p>
             </div>
 
-            <p className="mt-4 text-sm font-semibold text-foreground">
+            <h2 className="mt-5 text-sm font-bold text-foreground">
                 {label}
-            </p>
+            </h2>
 
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
                 {description}
             </p>
         </article>
@@ -106,6 +142,7 @@ type ActionCardProps = Readonly<{
     actionLabel: string;
     href: string;
     icon: LucideIcon;
+    tone: "payment" | "review";
 }>;
 
 function ActionCard({
@@ -115,23 +152,40 @@ function ActionCard({
     actionLabel,
     href,
     icon: Icon,
+    tone,
 }: ActionCardProps) {
+    const visualStyle =
+        tone === "payment"
+            ? {
+                card: "border-info/20 bg-info-soft",
+                icon: "bg-info text-info-foreground",
+                count: "text-info",
+            }
+            : {
+                card: "border-warning/20 bg-warning-soft",
+                icon: "bg-warning text-warning-foreground",
+                count: "text-warning",
+            };
+
     return (
-        <article className="rounded-[1.75rem] border border-border bg-surface p-5 sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-                <span className="grid size-12 place-items-center rounded-2xl bg-surface-muted text-brand">
-                    <Icon
-                        aria-hidden="true"
-                        className="size-5"
-                    />
+        <article
+            className={`rounded-[1.75rem] border p-5 shadow-soft sm:p-6 ${visualStyle.card}`}
+        >
+            <div className="flex items-start justify-between gap-5">
+                <span
+                    className={`grid size-12 shrink-0 place-items-center rounded-2xl ${visualStyle.icon}`}
+                >
+                    <Icon aria-hidden="true" className="size-5" />
                 </span>
 
-                <p className="text-4xl font-semibold tracking-[-0.05em] text-foreground">
+                <p
+                    className={`text-4xl font-bold tracking-[-0.055em] ${visualStyle.count}`}
+                >
                     {count}
                 </p>
             </div>
 
-            <h2 className="mt-5 text-lg font-semibold text-foreground">
+            <h2 className="mt-5 text-lg font-bold tracking-[-0.025em] text-foreground">
                 {title}
             </h2>
 
@@ -141,7 +195,7 @@ function ActionCard({
 
             <Link
                 href={href}
-                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
+                className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface px-4 text-sm font-bold text-foreground shadow-soft transition-colors duration-200 hover:bg-surface-elevated hover:text-brand"
             >
                 {actionLabel}
 
@@ -164,26 +218,26 @@ function RecentRentalItem({
     return (
         <article className="py-5 first:pt-0 last:pb-0">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <Link
                             href={`/properties/${rental.propertyId}`}
-                            className="line-clamp-1 text-sm font-semibold text-foreground transition-colors hover:text-brand"
+                            className="line-clamp-1 text-sm font-bold text-foreground transition-colors duration-200 hover:text-brand"
                         >
                             {rental.property.title}
                         </Link>
 
                         <span
-                            className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${rentalStatusStyles[rental.status]}`}
+                            className={`rounded-full px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.08em] ${rentalStatusStyles[rental.status]}`}
                         >
                             {rentalStatusLabels[rental.status]}
                         </span>
                     </div>
 
-                    <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-muted-foreground">
                         <MapPin
                             aria-hidden="true"
-                            className="size-4 shrink-0 text-brand"
+                            className="mt-1 size-4 shrink-0 text-accent"
                         />
 
                         <span className="line-clamp-1">
@@ -211,15 +265,13 @@ function RecentRentalItem({
                             />
 
                             {rental.duration}{" "}
-                            {rental.duration === 1
-                                ? "month"
-                                : "months"}
+                            {rental.duration === 1 ? "month" : "months"}
                         </span>
                     </div>
                 </div>
 
-                <div className="shrink-0 sm:text-right">
-                    <p className="text-base font-semibold text-brand">
+                <div className="shrink-0 rounded-xl bg-surface-subtle px-4 py-3 sm:text-right">
+                    <p className="text-base font-bold text-brand">
                         {currencyFormatter.format(
                             rental.property.price,
                         )}
@@ -241,27 +293,21 @@ function TenantOverviewSkeleton() {
     return (
         <>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                {Array.from(
-                    { length: 5 },
-                    (_, index) => (
-                        <div
-                            key={index}
-                            className="h-40 animate-pulse rounded-2xl border border-border bg-surface-muted"
-                        />
-                    ),
-                )}
+                {Array.from({ length: 5 }, (_, index) => (
+                    <div
+                        key={index}
+                        className="h-44 animate-pulse rounded-[1.5rem] border border-border bg-surface-muted"
+                    />
+                ))}
             </div>
 
             <div className="mt-6 grid gap-5 xl:grid-cols-2">
-                {Array.from(
-                    { length: 2 },
-                    (_, index) => (
-                        <div
-                            key={index}
-                            className="h-64 animate-pulse rounded-[1.75rem] border border-border bg-surface-muted"
-                        />
-                    ),
-                )}
+                {Array.from({ length: 2 }, (_, index) => (
+                    <div
+                        key={index}
+                        className="h-72 animate-pulse rounded-[1.75rem] border border-border bg-surface-muted"
+                    />
+                ))}
             </div>
 
             <div className="mt-6 h-96 animate-pulse rounded-[1.75rem] border border-border bg-surface-muted" />
@@ -324,56 +370,71 @@ export function TenantOverviewPanel() {
             : "Your tenant dashboard could not be loaded.";
 
     return (
-        <section>
-            <div className="flex flex-col gap-5 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                        Tenant workspace
-                    </p>
+        <section aria-labelledby="tenant-overview-title">
+            <header className="relative overflow-hidden rounded-[2rem] border border-border bg-surface p-6 shadow-soft sm:p-8 lg:p-10">
+                <div
+                    aria-hidden="true"
+                    className="absolute right-0 top-0 hidden h-full w-24 rounded-l-[3rem] bg-info-soft lg:block"
+                />
 
-                    <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl">
-                        Your rental overview
-                    </h1>
+                <div className="relative flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
+                    <div className="max-w-3xl">
+                        <span className="inline-flex rounded-full border border-info/20 bg-info-soft px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-info">
+                            Tenant workspace
+                        </span>
 
-                    <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-                        Track rental requests, approved payments,
-                        active properties, and completed rental
-                        experiences.
-                    </p>
+                        <h1
+                            id="tenant-overview-title"
+                            className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.05em] text-foreground sm:text-5xl"
+                        >
+                            Your rental overview,
+                            <span className="block text-brand">
+                                clearly organized.
+                            </span>
+                        </h1>
+
+                        <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+                            Track requests, approved payments, active
+                            properties, and completed rental experiences from
+                            one focused workspace.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                        <Link
+                            href="/properties"
+                            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
+                        >
+                            <House aria-hidden="true" className="size-4" />
+                            Browse properties
+                        </Link>
+
+                        <Link
+                            href="/dashboard/tenant/rentals"
+                            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active"
+                        >
+                            My rentals
+
+                            <ArrowRight
+                                aria-hidden="true"
+                                className="size-4"
+                            />
+                        </Link>
+                    </div>
                 </div>
-
-                <div className="flex flex-wrap gap-3">
-                    <Link
-                        href="/properties"
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
-                    >
-                        <House
-                            aria-hidden="true"
-                            className="size-4 text-brand"
-                        />
-                        Browse properties
-                    </Link>
-
-                    <Link
-                        href="/dashboard/tenant/rentals"
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
-                    >
-                        My rentals
-                        <ArrowRight
-                            aria-hidden="true"
-                            className="size-4"
-                        />
-                    </Link>
-                </div>
-            </div>
+            </header>
 
             {isFetching && !isLoading && (
-                <p
+                <div
                     role="status"
-                    className="mt-5 text-sm font-medium text-brand"
+                    className="mt-5 flex w-fit items-center gap-2 rounded-full bg-info-soft px-3.5 py-2 text-xs font-bold text-info"
                 >
-                    Updating your dashboard...
-                </p>
+                    <LoaderCircle
+                        aria-hidden="true"
+                        className="size-3.5 animate-spin"
+                    />
+                    Updating dashboard
+                </div>
             )}
 
             {isLoading ? (
@@ -381,29 +442,44 @@ export function TenantOverviewPanel() {
                     <TenantOverviewSkeleton />
                 </div>
             ) : error ? (
-                <div className="mt-8 rounded-[2rem] border border-border bg-surface p-8 text-center sm:p-12">
-                    <RefreshCw
-                        aria-hidden="true"
-                        className="mx-auto size-8 text-brand"
-                    />
+                <div
+                    role="alert"
+                    className="mt-8 rounded-[2rem] border border-danger/20 bg-surface p-8 text-center shadow-soft sm:p-12"
+                >
+                    <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-danger-soft text-danger">
+                        <RefreshCw
+                            aria-hidden="true"
+                            className={`size-7 ${isFetching ? "animate-spin" : ""
+                                }`}
+                        />
+                    </span>
 
-                    <h2 className="mt-5 text-xl font-semibold text-foreground">
+                    <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-danger">
+                        Dashboard unavailable
+                    </p>
+
+                    <h2 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-foreground">
                         Dashboard could not be loaded
                     </h2>
 
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                    <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
                         {errorMessage}
                     </p>
 
                     <button
                         type="button"
-                        onClick={() => refetch()}
+                        onClick={() => void refetch()}
                         disabled={isFetching}
-                        className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+                        className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active disabled:cursor-wait disabled:opacity-60"
                     >
-                        {isFetching
-                            ? "Trying again..."
-                            : "Try again"}
+                        {isFetching && (
+                            <LoaderCircle
+                                aria-hidden="true"
+                                className="size-4 animate-spin"
+                            />
+                        )}
+
+                        {isFetching ? "Trying again" : "Try again"}
                     </button>
                 </div>
             ) : (
@@ -412,43 +488,48 @@ export function TenantOverviewPanel() {
                         <SummaryCard
                             label="Total requests"
                             value={rentals.length}
-                            description="All rental requests you have submitted."
+                            description="Every rental request submitted from your account."
                             icon={ClipboardList}
+                            tone="brand"
                         />
 
                         <SummaryCard
                             label="Pending"
                             value={pendingCount}
-                            description="Requests awaiting a landlord decision."
+                            description="Requests waiting for a landlord decision."
                             icon={Clock3}
+                            tone="warning"
                         />
 
                         <SummaryCard
                             label="Approved"
                             value={approvedCount}
-                            description="Requests approved by landlords."
+                            description="Requests approved and ready for the next step."
                             icon={CheckCircle2}
+                            tone="info"
                         />
 
                         <SummaryCard
                             label="Active"
                             value={activeCount}
-                            description="Paid rentals currently in progress."
+                            description="Paid rentals that are currently in progress."
                             icon={Building2}
+                            tone="success"
                         />
 
                         <SummaryCard
                             label="Completed"
                             value={completedCount}
-                            description="Rentals completed after your review."
+                            description="Rental experiences completed after review."
                             icon={Star}
+                            tone="accent"
                         />
                     </div>
 
                     <div className="mt-6 grid gap-5 xl:grid-cols-2">
                         <ActionCard
                             title="Ready for payment"
-                            description="Approved rental requests that are waiting for Stripe payment."
+                            description="Approved rental requests currently waiting for secure Stripe payment."
                             count={readyForPaymentCount}
                             actionLabel={
                                 readyForPaymentCount > 0
@@ -457,11 +538,12 @@ export function TenantOverviewPanel() {
                             }
                             href="/dashboard/tenant/rentals"
                             icon={CreditCard}
+                            tone="payment"
                         />
 
                         <ActionCard
                             title="Waiting for your review"
-                            description="Active rentals with completed payments that are ready for feedback."
+                            description="Active rentals with completed payments that are eligible for feedback."
                             count={awaitingReviewCount}
                             actionLabel={
                                 awaitingReviewCount > 0
@@ -470,27 +552,32 @@ export function TenantOverviewPanel() {
                             }
                             href="/dashboard/tenant/rentals"
                             icon={Star}
+                            tone="review"
                         />
                     </div>
 
-                    <article className="mt-6 rounded-[1.75rem] border border-border bg-surface p-5 sm:p-6">
-                        <div className="flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+                    <article className="mt-6 overflow-hidden rounded-[1.75rem] border border-border bg-surface shadow-soft">
+                        <div className="flex flex-col gap-4 border-b border-border bg-surface-subtle p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                             <div>
-                                <h2 className="text-lg font-semibold text-foreground">
+                                <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">
+                                    Latest updates
+                                </p>
+
+                                <h2 className="mt-1.5 text-xl font-bold tracking-[-0.03em] text-foreground">
                                     Recent rental activity
                                 </h2>
 
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Your most recently updated rental
-                                    requests.
+                                <p className="mt-1.5 text-sm text-muted-foreground">
+                                    Your most recently updated rental requests.
                                 </p>
                             </div>
 
                             <Link
                                 href="/dashboard/tenant/rentals"
-                                className="inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"
+                                className="inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
                             >
                                 View all rentals
+
                                 <ArrowRight
                                     aria-hidden="true"
                                     className="size-4"
@@ -499,28 +586,33 @@ export function TenantOverviewPanel() {
                         </div>
 
                         {recentRentals.length === 0 ? (
-                            <div className="py-12 text-center">
-                                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-surface-muted text-brand">
+                            <div className="px-5 py-12 text-center sm:px-6">
+                                <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-brand-soft text-brand">
                                     <ClipboardList
                                         aria-hidden="true"
-                                        className="size-6"
+                                        className="size-7"
                                     />
                                 </span>
 
-                                <h3 className="mt-4 text-lg font-semibold text-foreground">
+                                <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                                    Your journey starts here
+                                </p>
+
+                                <h3 className="mt-2 text-xl font-bold tracking-[-0.025em] text-foreground">
                                     No rental activity yet
                                 </h3>
 
-                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                                    Browse available properties and
-                                    submit your first rental request.
+                                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+                                    Browse available properties and submit your
+                                    first rental request.
                                 </p>
 
                                 <Link
                                     href="/properties"
-                                    className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
+                                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active"
                                 >
                                     Browse properties
+
                                     <ArrowRight
                                         aria-hidden="true"
                                         className="size-4"
@@ -528,7 +620,7 @@ export function TenantOverviewPanel() {
                                 </Link>
                             </div>
                         ) : (
-                            <div className="divide-y divide-border">
+                            <div className="divide-y divide-border px-5 py-5 sm:px-6">
                                 {recentRentals.map((rental) => (
                                     <RecentRentalItem
                                         key={rental.id}

@@ -2,7 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    Filter,
+    ChevronDown,
+    CircleDollarSign,
+    LoaderCircle,
     MapPin,
     RotateCcw,
     Search,
@@ -31,6 +33,12 @@ const defaultValues: PropertyFilterFormValues = {
     maxPrice: "",
 };
 
+const inputClassName =
+    "h-12 w-full rounded-xl border border-border bg-background text-sm text-foreground outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-muted-foreground/70 hover:border-border-strong focus:border-focus focus:ring-4 focus:ring-focus/10 disabled:cursor-wait disabled:opacity-60";
+
+const errorInputClassName =
+    "border-danger focus:border-danger focus:ring-danger/10";
+
 export function PropertyFilterForm({
     categories,
     isCategoriesLoading,
@@ -56,74 +64,83 @@ export function PropertyFilterForm({
 
     return (
         <form
+            noValidate
             onSubmit={handleSubmit(onApply)}
-            className="rounded-[1.75rem] border border-border bg-surface p-5 sm:p-6"
+            className="grid gap-5 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_0.78fr_0.78fr_auto] xl:items-start"
         >
-            <div className="flex items-center gap-3 border-b border-border pb-5">
-                <span className="grid size-10 place-items-center rounded-xl bg-surface-muted text-brand">
-                    <Filter aria-hidden="true" className="size-5" />
-                </span>
+            <div>
+                <label
+                    htmlFor="property-location"
+                    className="mb-2 block text-sm font-bold text-foreground"
+                >
+                    Location
+                </label>
 
-                <div>
-                    <h2 className="font-semibold text-foreground">
-                        Refine your search
-                    </h2>
+                <div className="relative">
+                    <MapPin
+                        aria-hidden="true"
+                        className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-accent"
+                    />
 
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                        Narrow the listings using the details that matter.
-                    </p>
+                    <input
+                        id="property-location"
+                        type="text"
+                        placeholder="City or area"
+                        aria-invalid={Boolean(errors.location)}
+                        aria-describedby={
+                            errors.location
+                                ? "property-location-error"
+                                : undefined
+                        }
+                        {...register("location")}
+                        className={[
+                            inputClassName,
+                            "pl-10 pr-3",
+                            errors.location ? errorInputClassName : "",
+                        ].join(" ")}
+                    />
                 </div>
+
+                {errors.location && (
+                    <p
+                        id="property-location-error"
+                        role="alert"
+                        className="mt-2 text-sm font-medium text-danger"
+                    >
+                        {errors.location.message}
+                    </p>
+                )}
             </div>
 
-            <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_0.75fr_0.75fr_auto] xl:items-start">
-                <div>
-                    <label
-                        htmlFor="property-location"
-                        className="mb-2 block text-sm font-medium text-foreground"
-                    >
-                        Location
-                    </label>
+            <div>
+                <label
+                    htmlFor="property-category"
+                    className="mb-2 block text-sm font-bold text-foreground"
+                >
+                    Property type
+                </label>
 
-                    <div className="relative">
-                        <MapPin
-                            aria-hidden="true"
-                            className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                        />
-
-                        <input
-                            id="property-location"
-                            type="text"
-                            placeholder="City or area"
-                            aria-invalid={Boolean(errors.location)}
-                            {...register("location")}
-                            className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-focus"
-                        />
-                    </div>
-
-                    {errors.location && (
-                        <p className="mt-1.5 text-sm text-red-700 dark:text-red-300">
-                            {errors.location.message}
-                        </p>
-                    )}
-                </div>
-
-                <div>
-                    <label
-                        htmlFor="property-category"
-                        className="mb-2 block text-sm font-medium text-foreground"
-                    >
-                        Property type
-                    </label>
-
+                <div className="relative">
                     <select
                         id="property-category"
                         disabled={isCategoriesLoading}
+                        aria-describedby={
+                            categoryErrorMessage
+                                ? "property-category-error"
+                                : undefined
+                        }
                         {...register("categoryId")}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-focus disabled:cursor-wait disabled:opacity-60"
+                        className={[
+                            inputClassName,
+                            "appearance-none px-3 pr-10",
+                            categoryErrorMessage
+                                ? errorInputClassName
+                                : "",
+                        ].join(" ")}
                     >
                         <option value="">
                             {isCategoriesLoading
-                                ? "Loading types..."
+                                ? "Loading property types..."
                                 : "All property types"}
                         </option>
 
@@ -137,46 +154,89 @@ export function PropertyFilterForm({
                         ))}
                     </select>
 
-                    {categoryErrorMessage && (
-                        <p className="mt-1.5 text-sm text-red-700 dark:text-red-300">
-                            {categoryErrorMessage}
-                        </p>
+                    {isCategoriesLoading ? (
+                        <LoaderCircle
+                            aria-hidden="true"
+                            className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-brand"
+                        />
+                    ) : (
+                        <ChevronDown
+                            aria-hidden="true"
+                            className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                        />
                     )}
                 </div>
 
-                <div>
-                    <label
-                        htmlFor="minimum-price"
-                        className="mb-2 block text-sm font-medium text-foreground"
+                {categoryErrorMessage && (
+                    <p
+                        id="property-category-error"
+                        role="alert"
+                        className="mt-2 text-sm font-medium text-danger"
                     >
-                        Minimum price
-                    </label>
+                        {categoryErrorMessage}
+                    </p>
+                )}
+            </div>
+
+            <div>
+                <label
+                    htmlFor="minimum-price"
+                    className="mb-2 block text-sm font-bold text-foreground"
+                >
+                    Minimum price
+                </label>
+
+                <div className="relative">
+                    <CircleDollarSign
+                        aria-hidden="true"
+                        className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-accent"
+                    />
 
                     <input
                         id="minimum-price"
                         type="number"
                         min="0"
                         inputMode="decimal"
-                        placeholder="$0"
+                        placeholder="0"
                         aria-invalid={Boolean(errors.minPrice)}
+                        aria-describedby={
+                            errors.minPrice
+                                ? "minimum-price-error"
+                                : undefined
+                        }
                         {...register("minPrice")}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-focus"
+                        className={[
+                            inputClassName,
+                            "pl-10 pr-3",
+                            errors.minPrice ? errorInputClassName : "",
+                        ].join(" ")}
                     />
-
-                    {errors.minPrice && (
-                        <p className="mt-1.5 text-sm text-red-700 dark:text-red-300">
-                            {errors.minPrice.message}
-                        </p>
-                    )}
                 </div>
 
-                <div>
-                    <label
-                        htmlFor="maximum-price"
-                        className="mb-2 block text-sm font-medium text-foreground"
+                {errors.minPrice && (
+                    <p
+                        id="minimum-price-error"
+                        role="alert"
+                        className="mt-2 text-sm font-medium text-danger"
                     >
-                        Maximum price
-                    </label>
+                        {errors.minPrice.message}
+                    </p>
+                )}
+            </div>
+
+            <div>
+                <label
+                    htmlFor="maximum-price"
+                    className="mb-2 block text-sm font-bold text-foreground"
+                >
+                    Maximum price
+                </label>
+
+                <div className="relative">
+                    <CircleDollarSign
+                        aria-hidden="true"
+                        className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-accent"
+                    />
 
                     <input
                         id="maximum-price"
@@ -185,37 +245,67 @@ export function PropertyFilterForm({
                         inputMode="decimal"
                         placeholder="Any"
                         aria-invalid={Boolean(errors.maxPrice)}
+                        aria-describedby={
+                            errors.maxPrice
+                                ? "maximum-price-error"
+                                : undefined
+                        }
                         {...register("maxPrice")}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-focus"
+                        className={[
+                            inputClassName,
+                            "pl-10 pr-3",
+                            errors.maxPrice ? errorInputClassName : "",
+                        ].join(" ")}
+                    />
+                </div>
+
+                {errors.maxPrice && (
+                    <p
+                        id="maximum-price-error"
+                        role="alert"
+                        className="mt-2 text-sm font-medium text-danger"
+                    >
+                        {errors.maxPrice.message}
+                    </p>
+                )}
+            </div>
+
+            <div className="flex gap-2 md:col-span-2 xl:col-span-1 xl:pt-7">
+                <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active disabled:cursor-wait disabled:opacity-60 xl:flex-none"
+                >
+                    {isUpdating ? (
+                        <LoaderCircle
+                            aria-hidden="true"
+                            className="size-4 animate-spin"
+                        />
+                    ) : (
+                        <Search
+                            aria-hidden="true"
+                            className="size-4"
+                        />
+                    )}
+
+                    {isUpdating ? "Updating" : "Apply filters"}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleReset}
+                    disabled={isUpdating}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-bold text-muted-foreground transition-colors duration-200 hover:border-border-strong hover:bg-surface-muted hover:text-foreground disabled:cursor-wait disabled:opacity-60"
+                >
+                    <RotateCcw
+                        aria-hidden="true"
+                        className="size-4"
                     />
 
-                    {errors.maxPrice && (
-                        <p className="mt-1.5 text-sm text-red-700 dark:text-red-300">
-                            {errors.maxPrice.message}
-                        </p>
-                    )}
-                </div>
-
-                <div className="flex gap-2 xl:pt-7">
-                    <button
-                        type="submit"
-                        disabled={isUpdating}
-                        className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition-opacity duration-200 hover:opacity-90 disabled:cursor-wait disabled:opacity-60 xl:flex-none"
-                    >
-                        <Search aria-hidden="true" className="size-4" />
-                        {isUpdating ? "Updating..." : "Apply"}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        disabled={isUpdating}
-                        aria-label="Clear property filters"
-                        className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-background text-muted-foreground transition-colors duration-200 hover:bg-surface-muted hover:text-foreground disabled:cursor-wait disabled:opacity-60"
-                    >
-                        <RotateCcw aria-hidden="true" className="size-4" />
-                    </button>
-                </div>
+                    <span className="sm:hidden xl:hidden 2xl:inline">
+                        Reset
+                    </span>
+                </button>
             </div>
         </form>
     );

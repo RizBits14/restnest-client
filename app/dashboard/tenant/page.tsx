@@ -4,6 +4,8 @@ import { TenantOverviewPanel } from "@/components/dashboard/tenant/tenant-overvi
 
 export const metadata: Metadata = {
     title: "Tenant Dashboard",
+    description:
+        "Review rental requests, payment-ready properties, active rentals, and review eligibility from your RESTNEST tenant dashboard.",
 };
 
 export default function TenantDashboardPage() {

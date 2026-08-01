@@ -8,33 +8,65 @@ export default function Loading() {
         <section
             role="status"
             aria-live="polite"
-            className="flex min-h-[70svh] items-center justify-center px-4 py-16"
+            aria-busy="true"
+            aria-label="Loading RESTNEST content"
+            className="flex min-h-[70svh] items-center justify-center px-4 py-12 sm:px-6 sm:py-16"
         >
-            <div className="w-full max-w-md rounded-[2rem] border border-border bg-surface p-8 text-center sm:p-10">
-                <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-surface-muted text-brand">
-                    <Building2
-                        aria-hidden="true"
-                        className="size-7"
-                    />
-                </span>
-
-                <LoaderCircle
+            <div className="relative w-full max-w-xl overflow-hidden rounded-[2rem] border border-border bg-surface p-6 text-center shadow-soft sm:p-10">
+                <div
                     aria-hidden="true"
-                    className="mx-auto mt-6 size-6 animate-spin text-brand"
+                    className="absolute left-0 top-10 h-32 w-5 rounded-r-full bg-brand-soft"
                 />
 
-                <h1 className="mt-5 text-xl font-semibold tracking-[-0.025em] text-foreground">
-                    Preparing your RESTNEST experience
-                </h1>
+                <div
+                    aria-hidden="true"
+                    className="absolute bottom-10 right-0 h-24 w-5 rounded-l-full bg-accent-soft"
+                />
 
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Loading the latest properties and rental
-                    information.
-                </p>
+                <div className="relative">
+                    <span className="mx-auto grid size-20 place-items-center rounded-[1.6rem] border border-brand/15 bg-brand-soft text-brand">
+                        <Building2
+                            aria-hidden="true"
+                            className="size-8"
+                            strokeWidth={1.8}
+                        />
+                    </span>
 
-                <span className="sr-only">
-                    Page content is loading.
-                </span>
+                    <div className="mt-6 flex items-center justify-center gap-2">
+                        <LoaderCircle
+                            aria-hidden="true"
+                            className="size-5 animate-spin text-brand"
+                        />
+
+                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-brand">
+                            Loading RESTNEST
+                        </p>
+                    </div>
+
+                    <h1 className="mt-4 text-2xl font-bold tracking-[-0.04em] text-foreground sm:text-3xl">
+                        Preparing your rental experience
+                    </h1>
+
+                    <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+                        We are loading the latest property and rental
+                        information. This should only take a moment.
+                    </p>
+
+                    <div
+                        aria-hidden="true"
+                        className="mx-auto mt-8 max-w-sm space-y-3"
+                    >
+                        <div className="h-3 animate-pulse rounded-full bg-surface-muted" />
+
+                        <div className="mx-auto h-3 w-4/5 animate-pulse rounded-full bg-surface-muted" />
+
+                        <div className="mx-auto h-3 w-3/5 animate-pulse rounded-full bg-surface-muted" />
+                    </div>
+
+                    <span className="sr-only">
+                        Page content is currently loading.
+                    </span>
+                </div>
             </div>
         </section>
     );

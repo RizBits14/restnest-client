@@ -1,19 +1,17 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const fallbackImage = "/property-placeholder.svg";
-
-const allowedRemoteHostnames = new Set([
-    "cdn.pixabay.com",
-]);
 
 type PropertyImageProps = Readonly<{
     imageUrl?: string | null;
     alt: string;
     sizes: string;
     className?: string;
+    priority?: boolean;
 }>;
 
 function getSafeImageSource(imageUrl?: string | null) {
@@ -30,18 +28,11 @@ function getSafeImageSource(imageUrl?: string | null) {
     try {
         const parsedUrl = new URL(trimmedImageUrl);
 
-        const hasValidProtocol =
-            parsedUrl.protocol === "https:" ||
-            parsedUrl.protocol === "http:";
-
-        const hasAllowedHostname =
-            allowedRemoteHostnames.has(parsedUrl.hostname);
-
-        if (!hasValidProtocol || !hasAllowedHostname) {
+        if (parsedUrl.protocol !== "https:") {
             return fallbackImage;
         }
 
-        return trimmedImageUrl;
+        return parsedUrl.toString();
     } catch {
         return fallbackImage;
     }
@@ -52,10 +43,20 @@ export function PropertyImage({
     alt,
     sizes,
     className,
+    priority = false,
 }: PropertyImageProps) {
-    const [source, setSource] = useState(() =>
-        getSafeImageSource(imageUrl),
-    );
+    const safeSource = getSafeImageSource(imageUrl);
+    const [source, setSource] = useState(safeSource);
+
+    useEffect(() => {
+        setSource(safeSource);
+    }, [safeSource]);
+
+    function handleImageError() {
+        if (source !== fallbackImage) {
+            setSource(fallbackImage);
+        }
+    }
 
     return (
         <Image
@@ -63,8 +64,9 @@ export function PropertyImage({
             alt={alt}
             fill
             sizes={sizes}
+            priority={priority}
             className={className}
-            onError={() => setSource(fallbackImage)}
+            onError={handleImageError}
         />
     );
 }

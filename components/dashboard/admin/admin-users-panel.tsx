@@ -10,13 +10,16 @@ import {
     CheckCircle2,
     ChevronLeft,
     ChevronRight,
+    FilterX,
     LoaderCircle,
     Mail,
+    Phone,
     RefreshCw,
     Search,
     ShieldCheck,
     UserRound,
     UsersRound,
+    type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -35,85 +38,119 @@ import type {
 
 const pageSize = 8;
 
-const dateFormatter =
-    new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-    });
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+});
 
-const roleLabels: Record<
-    UserRole,
-    string
-> = {
+const roleLabels: Record<UserRole, string> = {
     TENANT: "Tenant",
     LANDLORD: "Landlord",
     ADMIN: "Administrator",
 };
 
-const roleStyles: Record<
-    UserRole,
-    string
-> = {
-    TENANT:
-        "border-blue-700/25 bg-blue-100 text-blue-900 dark:border-blue-400/30 dark:bg-blue-950 dark:text-blue-200",
-    LANDLORD:
-        "border-violet-700/25 bg-violet-100 text-violet-900 dark:border-violet-400/30 dark:bg-violet-950 dark:text-violet-200",
-    ADMIN:
-        "border-amber-700/25 bg-amber-100 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950 dark:text-amber-200",
+const roleStyles: Record<UserRole, string> = {
+    TENANT: "bg-info-soft text-info",
+    LANDLORD: "bg-accent-soft text-accent",
+    ADMIN: "bg-warning-soft text-warning",
 };
 
-const statusStyles: Record<
-    UserStatus,
-    string
+const statusLabels: Record<UserStatus, string> = {
+    ACTIVE: "Active",
+    BANNED: "Banned",
+};
+
+const statusStyles: Record<UserStatus, string> = {
+    ACTIVE: "bg-success-soft text-success",
+    BANNED: "bg-danger-soft text-danger",
+};
+
+type SummaryTone =
+    | "brand"
+    | "success"
+    | "danger"
+    | "accent";
+
+const summaryToneStyles: Record<
+    SummaryTone,
+    Readonly<{
+        icon: string;
+        value: string;
+    }>
 > = {
-    ACTIVE:
-        "border-emerald-700/25 bg-emerald-100 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-200",
-    BANNED:
-        "border-red-700/25 bg-red-100 text-red-900 dark:border-red-400/30 dark:bg-red-950 dark:text-red-200",
+    brand: {
+        icon: "bg-brand-soft text-brand",
+        value: "text-brand",
+    },
+    success: {
+        icon: "bg-success-soft text-success",
+        value: "text-success",
+    },
+    danger: {
+        icon: "bg-danger-soft text-danger",
+        value: "text-danger",
+    },
+    accent: {
+        icon: "bg-accent-soft text-accent",
+        value: "text-accent",
+    },
 };
 
 type SummaryCardProps = Readonly<{
     label: string;
     value: number;
-    icon: typeof UsersRound;
+    description: string;
+    icon: LucideIcon;
+    tone: SummaryTone;
 }>;
 
 function SummaryCard({
     label,
     value,
+    description,
     icon: Icon,
+    tone,
 }: SummaryCardProps) {
+    const visualStyle = summaryToneStyles[tone];
+
     return (
-        <article className="rounded-2xl border border-border bg-surface p-5">
+        <article className="rounded-[1.5rem] border border-border bg-surface p-5 shadow-soft transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-raised">
             <div className="flex items-start justify-between gap-4">
-                <span className="grid size-11 place-items-center rounded-xl bg-surface-muted text-brand">
+                <span
+                    className={`grid size-11 shrink-0 place-items-center rounded-xl ${visualStyle.icon}`}
+                >
                     <Icon
                         aria-hidden="true"
                         className="size-5"
                     />
                 </span>
 
-                <p className="text-3xl font-semibold tracking-[-0.05em] text-foreground">
+                <p
+                    className={`text-3xl font-bold tracking-[-0.05em] ${visualStyle.value}`}
+                >
                     {value}
                 </p>
             </div>
 
-            <p className="mt-4 text-sm font-medium text-muted-foreground">
+            <h2 className="mt-5 text-sm font-bold text-foreground">
                 {label}
+            </h2>
+
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+                {description}
             </p>
         </article>
     );
 }
 
-type UserStatusButtonProps =
-    Readonly<{
-        user: AdminUser;
-        currentAdminId?: string;
-        isUpdating: boolean;
-        onUpdate: (
-            user: AdminUser,
-            status: UserStatus,
-        ) => void;
-    }>;
+type UserStatusButtonProps = Readonly<{
+    user: AdminUser;
+    currentAdminId?: string;
+    isUpdating: boolean;
+    onUpdate: (
+        user: AdminUser,
+        status: UserStatus,
+    ) => void;
+}>;
 
 function UserStatusButton({
     user,
@@ -126,7 +163,12 @@ function UserStatusButton({
 
     if (isCurrentAdmin) {
         return (
-            <span className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-surface-muted px-4 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-warning/20 bg-warning-soft px-4 text-xs font-bold text-warning">
+                <ShieldCheck
+                    aria-hidden="true"
+                    className="size-4"
+                />
+
                 Current account
             </span>
         );
@@ -137,10 +179,8 @@ function UserStatusButton({
             ? "BANNED"
             : "ACTIVE";
 
-    const label =
-        nextStatus === "BANNED"
-            ? "Ban user"
-            : "Activate user";
+    const isBanAction =
+        nextStatus === "BANNED";
 
     return (
         <button
@@ -149,18 +189,20 @@ function UserStatusButton({
             onClick={() =>
                 onUpdate(user, nextStatus)
             }
-            className={
-                nextStatus === "BANNED"
-                    ? "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-300 bg-background px-4 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30"
-                    : "inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-semibold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
-            }
+            className={[
+                "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold transition-colors duration-200",
+                "disabled:cursor-wait disabled:opacity-60",
+                isBanAction
+                    ? "border border-danger/25 bg-background text-danger hover:border-danger/40 hover:bg-danger-soft"
+                    : "bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active",
+            ].join(" ")}
         >
             {isUpdating ? (
                 <LoaderCircle
                     aria-hidden="true"
                     className="size-4 animate-spin"
                 />
-            ) : nextStatus === "BANNED" ? (
+            ) : isBanAction ? (
                 <Ban
                     aria-hidden="true"
                     className="size-4"
@@ -174,15 +216,132 @@ function UserStatusButton({
 
             {isUpdating
                 ? "Updating..."
-                : label}
+                : isBanAction
+                    ? "Ban user"
+                    : "Activate user"}
         </button>
+    );
+}
+
+function AdminUsersSkeleton() {
+    return (
+        <>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {Array.from({ length: 4 }, (_, index) => (
+                    <div
+                        key={index}
+                        className="h-44 animate-pulse rounded-[1.5rem] border border-border bg-surface-muted"
+                    />
+                ))}
+            </div>
+
+            <div className="mt-8 overflow-hidden rounded-[2rem] border border-border bg-surface">
+                <div className="h-28 animate-pulse border-b border-border bg-surface-muted" />
+
+                <div className="divide-y divide-border">
+                    {Array.from({ length: 5 }, (_, index) => (
+                        <div
+                            key={index}
+                            className="h-28 animate-pulse bg-surface"
+                        />
+                    ))}
+                </div>
+            </div>
+        </>
+    );
+}
+
+type UserRowProps = Readonly<{
+    user: AdminUser;
+    currentAdminId?: string;
+    isUpdating: boolean;
+    onStatusUpdate: (
+        user: AdminUser,
+        status: UserStatus,
+    ) => void;
+}>;
+
+function UserRow({
+    user,
+    currentAdminId,
+    isUpdating,
+    onStatusUpdate,
+}: UserRowProps) {
+    return (
+        <article className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_auto] lg:items-center sm:px-6">
+            <div className="flex min-w-0 items-start gap-3">
+                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
+                    <UserRound
+                        aria-hidden="true"
+                        className="size-5"
+                    />
+                </span>
+
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-foreground">
+                        {user.name}
+                    </p>
+
+                    <p className="mt-1.5 flex items-start gap-2 text-sm leading-5 text-muted-foreground">
+                        <Mail
+                            aria-hidden="true"
+                            className="mt-0.5 size-4 shrink-0 text-brand"
+                        />
+
+                        <span className="break-all">
+                            {user.email}
+                        </span>
+                    </p>
+
+                    {user.phone && (
+                        <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+                            <Phone
+                                aria-hidden="true"
+                                className="size-4 shrink-0 text-accent"
+                            />
+
+                            {user.phone}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            <div>
+                <div className="flex flex-wrap gap-2">
+                    <span
+                        className={`rounded-full px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.07em] ${roleStyles[user.role]}`}
+                    >
+                        {roleLabels[user.role]}
+                    </span>
+
+                    <span
+                        className={`rounded-full px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.07em] ${statusStyles[user.status]}`}
+                    >
+                        {statusLabels[user.status]}
+                    </span>
+                </div>
+
+                <p className="mt-3 text-xs text-muted-foreground">
+                    Joined{" "}
+                    {dateFormatter.format(
+                        new Date(user.createdAt),
+                    )}
+                </p>
+            </div>
+
+            <UserStatusButton
+                user={user}
+                currentAdminId={currentAdminId}
+                isUpdating={isUpdating}
+                onUpdate={onStatusUpdate}
+            />
+        </article>
     );
 }
 
 export function AdminUsersPanel() {
     const queryClient = useQueryClient();
-    const { data: sessionUser } =
-        useSession();
+    const { data: sessionUser } = useSession();
 
     const [searchValue, setSearchValue] =
         useState("");
@@ -190,12 +349,8 @@ export function AdminUsersPanel() {
     const [roleFilter, setRoleFilter] =
         useState<UserRole | "ALL">("ALL");
 
-    const [
-        statusFilter,
-        setStatusFilter,
-    ] = useState<UserStatus | "ALL">(
-        "ALL",
-    );
+    const [statusFilter, setStatusFilter] =
+        useState<UserStatus | "ALL">("ALL");
 
     const [currentPage, setCurrentPage] =
         useState(1);
@@ -215,9 +370,7 @@ export function AdminUsersPanel() {
         mutationFn: updateAdminUserStatus,
 
         onSuccess: (updatedUser) => {
-            queryClient.setQueryData<
-                AdminUser[]
-            >(
+            queryClient.setQueryData<AdminUser[]>(
                 adminUsersQueryKey,
                 (currentUsers = []) =>
                     currentUsers.map((user) =>
@@ -235,8 +388,7 @@ export function AdminUsersPanel() {
 
         onError: (mutationError) => {
             toaster.error({
-                title:
-                    "User status update failed",
+                title: "User status update failed",
                 description:
                     mutationError instanceof Error
                         ? mutationError.message
@@ -248,39 +400,34 @@ export function AdminUsersPanel() {
     const normalizedSearch =
         searchValue.trim().toLowerCase();
 
-    const filteredUsers = users.filter(
-        (user) => {
-            const matchesSearch =
-                !normalizedSearch ||
-                user.name
-                    .toLowerCase()
-                    .includes(normalizedSearch) ||
-                user.email
-                    .toLowerCase()
-                    .includes(normalizedSearch);
+    const filteredUsers = users.filter((user) => {
+        const matchesSearch =
+            !normalizedSearch ||
+            user.name
+                .toLowerCase()
+                .includes(normalizedSearch) ||
+            user.email
+                .toLowerCase()
+                .includes(normalizedSearch);
 
-            const matchesRole =
-                roleFilter === "ALL" ||
-                user.role === roleFilter;
+        const matchesRole =
+            roleFilter === "ALL" ||
+            user.role === roleFilter;
 
-            const matchesStatus =
-                statusFilter === "ALL" ||
-                user.status === statusFilter;
+        const matchesStatus =
+            statusFilter === "ALL" ||
+            user.status === statusFilter;
 
-            return (
-                matchesSearch &&
-                matchesRole &&
-                matchesStatus
-            );
-        },
-    );
+        return (
+            matchesSearch &&
+            matchesRole &&
+            matchesStatus
+        );
+    });
 
     const totalPages = Math.max(
         1,
-        Math.ceil(
-            filteredUsers.length /
-            pageSize,
-        ),
+        Math.ceil(filteredUsers.length / pageSize),
     );
 
     const safeCurrentPage = Math.min(
@@ -289,14 +436,12 @@ export function AdminUsersPanel() {
     );
 
     const startIndex =
-        (safeCurrentPage - 1) *
-        pageSize;
+        (safeCurrentPage - 1) * pageSize;
 
-    const visibleUsers =
-        filteredUsers.slice(
-            startIndex,
-            startIndex + pageSize,
-        );
+    const visibleUsers = filteredUsers.slice(
+        startIndex,
+        startIndex + pageSize,
+    );
 
     const activeUsers = users.filter(
         (user) => user.status === "ACTIVE",
@@ -310,7 +455,24 @@ export function AdminUsersPanel() {
         (user) => user.role === "LANDLORD",
     ).length;
 
+    const hasActiveFilters =
+        searchValue.trim().length > 0 ||
+        roleFilter !== "ALL" ||
+        statusFilter !== "ALL";
+
+    const errorMessage =
+        error instanceof Error
+            ? error.message
+            : "The user list could not be loaded.";
+
     function resetPage() {
+        setCurrentPage(1);
+    }
+
+    function clearFilters() {
+        setSearchValue("");
+        setRoleFilter("ALL");
+        setStatusFilter("ALL");
         setCurrentPage(1);
     }
 
@@ -337,79 +499,95 @@ export function AdminUsersPanel() {
         });
     }
 
-    const errorMessage =
-        error instanceof Error
-            ? error.message
-            : "The user list could not be loaded.";
-
     return (
-        <section>
-            <div className="flex flex-col gap-5 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                        User administration
-                    </p>
+        <section aria-labelledby="admin-users-title">
+            <header className="relative overflow-hidden rounded-[2rem] border border-border bg-surface p-6 shadow-soft sm:p-8 lg:p-10">
+                <div
+                    aria-hidden="true"
+                    className="absolute right-0 top-0 hidden h-full w-24 rounded-l-[3rem] bg-warning-soft lg:block"
+                />
 
-                    <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl">
-                        Manage users
+                <div className="relative max-w-3xl">
+                    <span className="inline-flex rounded-full border border-warning/20 bg-warning-soft px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-warning">
+                        User administration
+                    </span>
+
+                    <h1
+                        id="admin-users-title"
+                        className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.05em] text-foreground sm:text-5xl"
+                    >
+                        Manage platform access
+                        <span className="block text-brand">
+                            responsibly and clearly.
+                        </span>
                     </h1>
 
-                    <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-                        Inspect tenant, landlord, and
-                        administrator accounts and manage
-                        account access.
+                    <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+                        Search tenant, landlord, and administrator
+                        accounts, review account information, and
+                        control active or banned access status.
                     </p>
                 </div>
+            </header>
 
-                {isFetching && !isLoading && (
-                    <p
-                        role="status"
-                        className="text-sm font-medium text-brand"
-                    >
-                        Updating users...
-                    </p>
-                )}
-            </div>
-
-            {isLoading ? (
-                <>
-                    <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        {Array.from(
-                            { length: 4 },
-                            (_, index) => (
-                                <div
-                                    key={index}
-                                    className="h-32 animate-pulse rounded-2xl border border-border bg-surface-muted"
-                                />
-                            ),
-                        )}
-                    </div>
-
-                    <div className="mt-8 h-96 animate-pulse rounded-[2rem] border border-border bg-surface-muted" />
-                </>
-            ) : error ? (
-                <div className="mt-8 rounded-[2rem] border border-border bg-surface p-8 text-center sm:p-12">
-                    <RefreshCw
+            {isFetching && !isLoading && (
+                <div
+                    role="status"
+                    className="mt-5 flex w-fit items-center gap-2 rounded-full bg-info-soft px-3.5 py-2 text-xs font-bold text-info"
+                >
+                    <LoaderCircle
                         aria-hidden="true"
-                        className="mx-auto size-7 text-brand"
+                        className="size-3.5 animate-spin"
                     />
 
-                    <h2 className="mt-5 text-xl font-semibold text-foreground">
+                    Updating users
+                </div>
+            )}
+
+            {isLoading ? (
+                <div className="mt-8">
+                    <AdminUsersSkeleton />
+                </div>
+            ) : error ? (
+                <div
+                    role="alert"
+                    className="mt-8 rounded-[2rem] border border-danger/20 bg-surface p-8 text-center shadow-soft sm:p-12"
+                >
+                    <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-danger-soft text-danger">
+                        <RefreshCw
+                            aria-hidden="true"
+                            className={`size-7 ${isFetching ? "animate-spin" : ""
+                                }`}
+                        />
+                    </span>
+
+                    <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-danger">
+                        Users unavailable
+                    </p>
+
+                    <h2 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-foreground">
                         Users could not be loaded
                     </h2>
 
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                    <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
                         {errorMessage}
                     </p>
 
                     <button
                         type="button"
-                        onClick={() => refetch()}
+                        onClick={() => void refetch()}
                         disabled={isFetching}
-                        className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+                        className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active disabled:cursor-wait disabled:opacity-60"
                     >
+                        {isFetching && (
+                            <LoaderCircle
+                                aria-hidden="true"
+                                className="size-4 animate-spin"
+                            />
+                        )}
+
                         {isFetching
-                            ? "Trying again..."
+                            ? "Trying again"
                             : "Try again"}
                     </button>
                 </div>
@@ -419,118 +597,182 @@ export function AdminUsersPanel() {
                         <SummaryCard
                             label="Total users"
                             value={users.length}
+                            description="Every account registered on RESTNEST."
                             icon={UsersRound}
+                            tone="brand"
                         />
 
                         <SummaryCard
                             label="Active accounts"
                             value={activeUsers}
+                            description="Users currently permitted to access the platform."
                             icon={CheckCircle2}
+                            tone="success"
                         />
 
                         <SummaryCard
                             label="Banned accounts"
                             value={bannedUsers}
+                            description="Accounts currently restricted from platform access."
                             icon={Ban}
+                            tone="danger"
                         />
 
                         <SummaryCard
                             label="Landlords"
                             value={landlordUsers}
+                            description="Property-owner accounts registered on RESTNEST."
                             icon={ShieldCheck}
+                            tone="accent"
                         />
                     </div>
 
-                    <div className="mt-8 rounded-[2rem] border border-border bg-surface">
-                        <div className="grid gap-3 border-b border-border p-5 md:grid-cols-[minmax(0,1fr)_12rem_12rem]">
-                            <div className="relative">
-                                <Search
-                                    aria-hidden="true"
-                                    className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                                />
+                    <article className="mt-8 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-soft">
+                        <div className="border-b border-border bg-surface-subtle p-5 sm:p-6">
+                            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">
+                                        Account directory
+                                    </p>
 
-                                <input
-                                    type="search"
-                                    value={searchValue}
+                                    <h2 className="mt-1.5 text-xl font-bold tracking-[-0.03em] text-foreground">
+                                        Search and filter users
+                                    </h2>
+
+                                    <p className="mt-1.5 text-sm text-muted-foreground">
+                                        Filter accounts by identity, role, or
+                                        access status.
+                                    </p>
+                                </div>
+
+                                {hasActiveFilters && (
+                                    <button
+                                        type="button"
+                                        onClick={clearFilters}
+                                        className="inline-flex min-h-10 w-fit items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-bold text-muted-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
+                                    >
+                                        <FilterX
+                                            aria-hidden="true"
+                                            className="size-4"
+                                        />
+
+                                        Clear filters
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_12rem_12rem]">
+                                <div className="relative">
+                                    <Search
+                                        aria-hidden="true"
+                                        className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                                    />
+
+                                    <input
+                                        type="search"
+                                        value={searchValue}
+                                        onChange={(event) => {
+                                            setSearchValue(
+                                                event.target.value,
+                                            );
+                                            resetPage();
+                                        }}
+                                        placeholder="Search name or email"
+                                        aria-label="Search users"
+                                        className="h-12 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm text-foreground outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted-foreground/70 hover:border-border-strong focus:border-focus focus:ring-4 focus:ring-focus/10"
+                                    />
+                                </div>
+
+                                <select
+                                    value={roleFilter}
                                     onChange={(event) => {
-                                        setSearchValue(
-                                            event.target.value,
+                                        setRoleFilter(
+                                            event.target.value as
+                                            | UserRole
+                                            | "ALL",
                                         );
                                         resetPage();
                                     }}
-                                    placeholder="Search name or email"
-                                    aria-label="Search users"
-                                    className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-focus"
-                                />
+                                    aria-label="Filter by role"
+                                    className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition-[border-color,box-shadow] duration-200 hover:border-border-strong focus:border-focus focus:ring-4 focus:ring-focus/10"
+                                >
+                                    <option value="ALL">
+                                        All roles
+                                    </option>
+
+                                    <option value="TENANT">
+                                        Tenants
+                                    </option>
+
+                                    <option value="LANDLORD">
+                                        Landlords
+                                    </option>
+
+                                    <option value="ADMIN">
+                                        Administrators
+                                    </option>
+                                </select>
+
+                                <select
+                                    value={statusFilter}
+                                    onChange={(event) => {
+                                        setStatusFilter(
+                                            event.target.value as
+                                            | UserStatus
+                                            | "ALL",
+                                        );
+                                        resetPage();
+                                    }}
+                                    aria-label="Filter by status"
+                                    className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition-[border-color,box-shadow] duration-200 hover:border-border-strong focus:border-focus focus:ring-4 focus:ring-focus/10"
+                                >
+                                    <option value="ALL">
+                                        All statuses
+                                    </option>
+
+                                    <option value="ACTIVE">
+                                        Active
+                                    </option>
+
+                                    <option value="BANNED">
+                                        Banned
+                                    </option>
+                                </select>
                             </div>
-
-                            <select
-                                value={roleFilter}
-                                onChange={(event) => {
-                                    setRoleFilter(
-                                        event.target.value as
-                                        | UserRole
-                                        | "ALL",
-                                    );
-                                    resetPage();
-                                }}
-                                aria-label="Filter by role"
-                                className="h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none focus:border-focus"
-                            >
-                                <option value="ALL">
-                                    All roles
-                                </option>
-                                <option value="TENANT">
-                                    Tenants
-                                </option>
-                                <option value="LANDLORD">
-                                    Landlords
-                                </option>
-                                <option value="ADMIN">
-                                    Administrators
-                                </option>
-                            </select>
-
-                            <select
-                                value={statusFilter}
-                                onChange={(event) => {
-                                    setStatusFilter(
-                                        event.target.value as
-                                        | UserStatus
-                                        | "ALL",
-                                    );
-                                    resetPage();
-                                }}
-                                aria-label="Filter by status"
-                                className="h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none focus:border-focus"
-                            >
-                                <option value="ALL">
-                                    All statuses
-                                </option>
-                                <option value="ACTIVE">
-                                    Active
-                                </option>
-                                <option value="BANNED">
-                                    Banned
-                                </option>
-                            </select>
                         </div>
 
                         {visibleUsers.length === 0 ? (
-                            <div className="p-10 text-center">
-                                <UsersRound
-                                    aria-hidden="true"
-                                    className="mx-auto size-8 text-brand"
-                                />
+                            <div className="px-5 py-12 text-center sm:px-6">
+                                <span className="mx-auto grid size-16 place-items-center rounded-[1.4rem] bg-brand-soft text-brand">
+                                    <UsersRound
+                                        aria-hidden="true"
+                                        className="size-7"
+                                    />
+                                </span>
 
-                                <h2 className="mt-4 text-lg font-semibold text-foreground">
+                                <h2 className="mt-5 text-xl font-bold tracking-[-0.025em] text-foreground">
                                     No users found
                                 </h2>
 
-                                <p className="mt-2 text-sm text-muted-foreground">
-                                    Try changing the search or
-                                    filter values.
+                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                                    Adjust the search term or filter values to
+                                    find a different account.
                                 </p>
+
+                                {hasActiveFilters && (
+                                    <button
+                                        type="button"
+                                        onClick={clearFilters}
+                                        className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
+                                    >
+                                        <FilterX
+                                            aria-hidden="true"
+                                            className="size-4"
+                                        />
+
+                                        Reset filters
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className="divide-y divide-border">
@@ -541,100 +783,39 @@ export function AdminUsersPanel() {
                                             ?.userId === user.id;
 
                                     return (
-                                        <article
+                                        <UserRow
                                             key={user.id}
-                                            className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] lg:items-center"
-                                        >
-                                            <div className="flex min-w-0 items-start gap-3">
-                                                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-muted text-brand">
-                                                    <UserRound
-                                                        aria-hidden="true"
-                                                        className="size-5"
-                                                    />
-                                                </span>
-
-                                                <div className="min-w-0">
-                                                    <p className="truncate font-semibold text-foreground">
-                                                        {user.name}
-                                                    </p>
-
-                                                    <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-muted-foreground">
-                                                        <Mail
-                                                            aria-hidden="true"
-                                                            className="size-4 shrink-0"
-                                                        />
-
-                                                        {user.email}
-                                                    </p>
-
-                                                    {user.phone && (
-                                                        <p className="mt-1 text-sm text-muted-foreground">
-                                                            {user.phone}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    <span
-                                                        className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${roleStyles[user.role]}`}
-                                                    >
-                                                        {roleLabels[
-                                                            user.role
-                                                        ]}
-                                                    </span>
-
-                                                    <span
-                                                        className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusStyles[user.status]}`}
-                                                    >
-                                                        {user.status ===
-                                                            "ACTIVE"
-                                                            ? "Active"
-                                                            : "Banned"}
-                                                    </span>
-                                                </div>
-
-                                                <p className="mt-3 text-xs text-muted-foreground">
-                                                    Joined{" "}
-                                                    {dateFormatter.format(
-                                                        new Date(
-                                                            user.createdAt,
-                                                        ),
-                                                    )}
-                                                </p>
-                                            </div>
-
-                                            <UserStatusButton
-                                                user={user}
-                                                currentAdminId={
-                                                    sessionUser?.id
-                                                }
-                                                isUpdating={
-                                                    isUpdating
-                                                }
-                                                onUpdate={
-                                                    handleStatusUpdate
-                                                }
-                                            />
-                                        </article>
+                                            user={user}
+                                            currentAdminId={
+                                                sessionUser?.id
+                                            }
+                                            isUpdating={isUpdating}
+                                            onStatusUpdate={
+                                                handleStatusUpdate
+                                            }
+                                        />
                                     );
                                 })}
                             </div>
                         )}
 
-                        <div className="flex flex-col gap-4 border-t border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-4 border-t border-border bg-surface-subtle p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                             <p className="text-sm text-muted-foreground">
                                 Showing{" "}
-                                {filteredUsers.length === 0
-                                    ? 0
-                                    : startIndex + 1}
-                                –
-                                {Math.min(
-                                    startIndex + pageSize,
-                                    filteredUsers.length,
-                                )}{" "}
-                                of {filteredUsers.length}
+                                <strong className="font-bold text-foreground">
+                                    {filteredUsers.length === 0
+                                        ? 0
+                                        : startIndex + 1}
+                                    –
+                                    {Math.min(
+                                        startIndex + pageSize,
+                                        filteredUsers.length,
+                                    )}
+                                </strong>{" "}
+                                of{" "}
+                                <strong className="font-bold text-foreground">
+                                    {filteredUsers.length}
+                                </strong>
                             </p>
 
                             <div className="flex items-center gap-2">
@@ -648,11 +829,9 @@ export function AdminUsersPanel() {
                                             ),
                                         )
                                     }
-                                    disabled={
-                                        safeCurrentPage === 1
-                                    }
+                                    disabled={safeCurrentPage === 1}
                                     aria-label="Previous page"
-                                    className="grid size-10 place-items-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="grid size-11 place-items-center rounded-xl border border-border bg-background text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
                                 >
                                     <ChevronLeft
                                         aria-hidden="true"
@@ -660,7 +839,7 @@ export function AdminUsersPanel() {
                                     />
                                 </button>
 
-                                <span className="min-w-24 text-center text-sm font-medium text-foreground">
+                                <span className="min-w-28 text-center text-sm font-bold text-foreground">
                                     Page {safeCurrentPage} of{" "}
                                     {totalPages}
                                 </span>
@@ -676,11 +855,10 @@ export function AdminUsersPanel() {
                                         )
                                     }
                                     disabled={
-                                        safeCurrentPage ===
-                                        totalPages
+                                        safeCurrentPage === totalPages
                                     }
                                     aria-label="Next page"
-                                    className="grid size-10 place-items-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="grid size-11 place-items-center rounded-xl border border-border bg-background text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
                                 >
                                     <ChevronRight
                                         aria-hidden="true"
@@ -689,7 +867,7 @@ export function AdminUsersPanel() {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 </>
             )}
         </section>

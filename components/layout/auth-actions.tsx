@@ -4,8 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
     LayoutDashboard,
     LoaderCircle,
+    LogIn,
     LogOut,
-    UserRound,
+    UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,10 +27,26 @@ const roleLabels: Record<UserRole, string> = {
     ADMIN: "Admin",
 };
 
+const roleBadgeClasses: Record<UserRole, string> = {
+    TENANT: "bg-info-soft text-info",
+    LANDLORD: "bg-accent-soft text-accent",
+    ADMIN: "bg-warning-soft text-warning",
+};
+
 type AuthActionsProps = Readonly<{
     variant: "desktop" | "mobile";
     onNavigate?: () => void;
 }>;
+
+function getUserInitial(name: string) {
+    const normalizedName = name.trim();
+
+    if (!normalizedName) {
+        return "U";
+    }
+
+    return normalizedName.charAt(0).toUpperCase();
+}
 
 export function AuthActions({
     variant,
@@ -39,8 +56,7 @@ export function AuthActions({
     const queryClient = useQueryClient();
     const { data: user, isLoading } = useSession();
 
-    const [isLoggingOut, setIsLoggingOut] =
-        useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     async function handleLogout() {
         setIsLoggingOut(true);
@@ -48,10 +64,7 @@ export function AuthActions({
         try {
             const message = await logoutUser();
 
-            queryClient.setQueryData(
-                sessionQueryKey,
-                null,
-            );
+            queryClient.setQueryData(sessionQueryKey, null);
 
             toaster.success({
                 title: "Signed out successfully",
@@ -79,8 +92,15 @@ export function AuthActions({
             return (
                 <div
                     aria-label="Checking authentication"
-                    className="h-24 animate-pulse rounded-2xl bg-surface-muted"
-                />
+                    className="space-y-3"
+                >
+                    <div className="h-20 animate-pulse rounded-2xl bg-surface-muted" />
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="h-11 animate-pulse rounded-xl bg-surface-muted" />
+                        <div className="h-11 animate-pulse rounded-xl bg-surface-muted" />
+                    </div>
+                </div>
             );
         }
 
@@ -89,8 +109,9 @@ export function AuthActions({
                 aria-label="Checking authentication"
                 className="flex items-center gap-2"
             >
+                <div className="h-10 w-32 animate-pulse rounded-xl bg-surface-muted" />
+                <div className="h-10 w-28 animate-pulse rounded-xl bg-surface-muted" />
                 <div className="size-10 animate-pulse rounded-xl bg-surface-muted" />
-                <div className="h-10 w-24 animate-pulse rounded-xl bg-surface-muted" />
             </div>
         );
     }
@@ -102,17 +123,19 @@ export function AuthActions({
                     <Link
                         href="/auth/login"
                         onClick={onNavigate}
-                        className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-surface-muted"
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-border-strong hover:bg-surface-muted"
                     >
+                        <LogIn aria-hidden="true" className="size-4" />
                         Log in
                     </Link>
 
                     <Link
                         href="/auth/register"
                         onClick={onNavigate}
-                        className="inline-flex h-11 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition-opacity duration-200 hover:opacity-90"
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active"
                     >
-                        Create account
+                        <UserPlus aria-hidden="true" className="size-4" />
+                        Sign up
                     </Link>
                 </div>
             );
@@ -122,15 +145,17 @@ export function AuthActions({
             <div className="flex items-center gap-2">
                 <Link
                     href="/auth/login"
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-surface-muted"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-border-strong hover:bg-surface-muted"
                 >
+                    <LogIn aria-hidden="true" className="size-4" />
                     Log in
                 </Link>
 
                 <Link
                     href="/auth/register"
-                    className="inline-flex h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition-opacity duration-200 hover:opacity-90"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active"
                 >
+                    <UserPlus aria-hidden="true" className="size-4" />
                     Create account
                 </Link>
             </div>
@@ -142,22 +167,24 @@ export function AuthActions({
     if (variant === "mobile") {
         return (
             <div className="space-y-3">
-                <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-muted text-brand">
-                        <UserRound
-                            aria-hidden="true"
-                            className="size-5"
-                        />
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-subtle p-3">
+                    <span
+                        aria-hidden="true"
+                        className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-sm font-bold text-brand"
+                    >
+                        {getUserInitial(user.name)}
                     </span>
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-foreground">
                             {user.name}
                         </p>
 
-                        <p className="mt-0.5 text-xs text-muted-foreground">
+                        <span
+                            className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.08em] ${roleBadgeClasses[user.role]}`}
+                        >
                             {roleLabels[user.role]}
-                        </p>
+                        </span>
                     </div>
                 </div>
 
@@ -165,7 +192,7 @@ export function AuthActions({
                     <Link
                         href={dashboardPath}
                         onClick={onNavigate}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition-opacity duration-200 hover:opacity-90"
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active"
                     >
                         <LayoutDashboard
                             aria-hidden="true"
@@ -178,7 +205,7 @@ export function AuthActions({
                         type="button"
                         onClick={handleLogout}
                         disabled={isLoggingOut}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-surface-muted disabled:cursor-wait disabled:opacity-60"
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-danger/40 hover:bg-danger-soft hover:text-danger disabled:cursor-wait disabled:opacity-60"
                     >
                         {isLoggingOut ? (
                             <LoaderCircle
@@ -186,13 +213,10 @@ export function AuthActions({
                                 className="size-4 animate-spin"
                             />
                         ) : (
-                            <LogOut
-                                aria-hidden="true"
-                                className="size-4"
-                            />
+                            <LogOut aria-hidden="true" className="size-4" />
                         )}
 
-                        Sign out
+                        {isLoggingOut ? "Signing out" : "Sign out"}
                     </button>
                 </div>
             </div>
@@ -201,20 +225,22 @@ export function AuthActions({
 
     return (
         <div className="flex items-center gap-2">
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2">
-                <span className="grid size-7 place-items-center rounded-lg bg-surface-muted text-brand">
-                    <UserRound
-                        aria-hidden="true"
-                        className="size-4"
-                    />
+            <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-border bg-surface-subtle px-2.5 py-1.5">
+                <span
+                    aria-hidden="true"
+                    className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-xs font-bold text-brand"
+                >
+                    {getUserInitial(user.name)}
                 </span>
 
-                <div className="max-w-32">
+                <div className="min-w-0 max-w-28">
                     <p className="truncate text-xs font-semibold text-foreground">
                         {user.name}
                     </p>
 
-                    <p className="text-[0.7rem] text-muted-foreground">
+                    <p
+                        className={`mt-0.5 w-fit rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] ${roleBadgeClasses[user.role]}`}
+                    >
                         {roleLabels[user.role]}
                     </p>
                 </div>
@@ -222,24 +248,22 @@ export function AuthActions({
 
             <Link
                 href={dashboardPath}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-brand-foreground transition-opacity duration-200 hover:opacity-90 lg:px-4"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active xl:px-4"
             >
                 <LayoutDashboard
                     aria-hidden="true"
                     className="size-4"
                 />
-
-                <span>
-                    Dashboard
-                </span>
+                <span>Dashboard</span>
             </Link>
 
             <button
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                aria-label="Sign out"
-                className="grid size-10 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors duration-200 hover:bg-surface-muted disabled:cursor-wait disabled:opacity-60"
+                aria-label={isLoggingOut ? "Signing out" : "Sign out"}
+                title={isLoggingOut ? "Signing out" : "Sign out"}
+                className="grid size-10 place-items-center rounded-xl border border-border bg-surface text-foreground transition-colors duration-200 hover:border-danger/40 hover:bg-danger-soft hover:text-danger disabled:cursor-wait disabled:opacity-60"
             >
                 {isLoggingOut ? (
                     <LoaderCircle
@@ -247,10 +271,7 @@ export function AuthActions({
                         className="size-4 animate-spin"
                     />
                 ) : (
-                    <LogOut
-                        aria-hidden="true"
-                        className="size-4"
-                    />
+                    <LogOut aria-hidden="true" className="size-4" />
                 )}
             </button>
         </div>
