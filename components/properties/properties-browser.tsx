@@ -36,10 +36,27 @@ function createAppliedFilters(
     };
 }
 
-function getActiveFilterCount(filters: PropertyFilters) {
+function getActiveFilterCount(
+    filters: PropertyFilters,
+) {
     return Object.values(filters).filter(
         (value) => value !== undefined,
     ).length;
+}
+
+function getRequestErrorMessage(
+    error: unknown,
+    fallbackMessage: string,
+) {
+    if (error instanceof ApiError) {
+        return error.message;
+    }
+
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallbackMessage;
 }
 
 export function PropertiesBrowser() {
@@ -49,7 +66,8 @@ export function PropertiesBrowser() {
     const {
         data: categories = [],
         error: categoriesError,
-        isLoading: isCategoriesLoading,
+        isPending: isCategoriesPending,
+        isFetching: isCategoriesFetching,
     } = useQuery({
         queryKey: ["property-categories"],
         queryFn: getCategories,
@@ -57,9 +75,9 @@ export function PropertiesBrowser() {
 
     const {
         data: properties = [],
-        error,
-        isLoading,
-        isFetching,
+        error: propertiesError,
+        isPending: isPropertiesPending,
+        isFetching: isPropertiesFetching,
         refetch,
     } = useQuery({
         queryKey: [
@@ -73,28 +91,65 @@ export function PropertiesBrowser() {
                 ...appliedFilters,
                 status: "AVAILABLE",
             }),
-        placeholderData: (previousData) => previousData,
+
+        // Keep the existing property cards visible while
+        // a new filter combination is being requested.
+        placeholderData: (previousData) =>
+            previousData,
+
+        // Always verify the available-property list when
+        // this component mounts.
+        staleTime: 0,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
     });
 
     const activeFilterCount =
         getActiveFilterCount(appliedFilters);
 
-    const errorMessage =
-        error instanceof ApiError
-            ? error.message
-            : "Available properties could not be loaded.";
+    const isInitialLoading =
+        isPropertiesPending &&
+        properties.length === 0;
 
-    const categoryErrorMessage =
-        categoriesError instanceof ApiError
-            ? categoriesError.message
-            : categoriesError
-                ? "Property types could not be loaded."
-                : undefined;
+    const isRefreshing =
+        isPropertiesFetching &&
+        !isInitialLoading;
+
+    const isPageDataFetching =
+        isPropertiesFetching ||
+        isCategoriesFetching;
+
+    const propertiesErrorMessage =
+        getRequestErrorMessage(
+            propertiesError,
+            "Available properties could not be loaded.",
+        );
+
+    const categoryErrorMessage = categoriesError
+        ? getRequestErrorMessage(
+            categoriesError,
+            "Property types could not be loaded.",
+        )
+        : undefined;
+
+    const loadingTitle = isInitialLoading
+        ? "Loading available properties"
+        : isPropertiesFetching
+            ? "Refreshing property results"
+            : "Refreshing property filters";
+
+    const loadingDescription = isInitialLoading
+        ? "Please wait while RESTNEST retrieves the latest available listings."
+        : isPropertiesFetching
+            ? "The currently displayed listings will update when the latest results arrive."
+            : "RESTNEST is updating the available property categories.";
 
     function handleApplyFilters(
         values: PropertyFilterFormValues,
     ) {
-        setAppliedFilters(createAppliedFilters(values));
+        setAppliedFilters(
+            createAppliedFilters(values),
+        );
     }
 
     function handleResetFilters() {
@@ -119,6 +174,7 @@ export function PropertiesBrowser() {
                                 aria-hidden="true"
                                 className="size-3.5"
                             />
+
                             Available rentals
                         </div>
 
@@ -127,15 +183,17 @@ export function PropertiesBrowser() {
                             className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.05em] text-foreground sm:text-5xl lg:text-[3.5rem]"
                         >
                             Find a property for your
+
                             <span className="block text-brand">
                                 next chapter.
                             </span>
                         </h1>
 
                         <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                            Browse available homes with clear pricing,
-                            essential details, and practical filters that help
-                            narrow your search.
+                            Browse available homes with
+                            clear pricing, essential
+                            details, and practical filters
+                            that help narrow your search.
                         </p>
                     </div>
                 </header>
@@ -156,7 +214,8 @@ export function PropertiesBrowser() {
                                 </h2>
 
                                 <p className="mt-0.5 text-sm text-muted-foreground">
-                                    Filter by location, category, and price.
+                                    Filter by location,
+                                    category, and price.
                                 </p>
                             </div>
                         </div>
@@ -175,32 +234,68 @@ export function PropertiesBrowser() {
                     <div className="p-5 sm:p-6">
                         <PropertyFilterForm
                             categories={categories}
-                            isCategoriesLoading={isCategoriesLoading}
-                            categoryErrorMessage={categoryErrorMessage}
-                            isUpdating={isFetching && !isLoading}
+                            isCategoriesLoading={
+                                isCategoriesPending
+                            }
+                            categoryErrorMessage={
+                                categoryErrorMessage
+                            }
+                            isUpdating={isRefreshing}
                             onApply={handleApplyFilters}
                             onReset={handleResetFilters}
                         />
                     </div>
                 </div>
 
+                {isPageDataFetching && (
+                    <div
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                        className="mt-6 flex items-start gap-3 rounded-2xl border border-brand/20 bg-brand-soft px-4 py-3.5 text-brand shadow-soft sm:px-5"
+                    >
+                        <LoaderCircle
+                            aria-hidden="true"
+                            className="mt-0.5 size-5 shrink-0 animate-spin"
+                        />
+
+                        <div>
+                            <p className="text-sm font-bold">
+                                {loadingTitle}
+                            </p>
+
+                            <p className="mt-1 text-xs leading-5 text-brand/80">
+                                {loadingDescription}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 <div
-                    aria-busy={isLoading || isFetching}
+                    aria-busy={isPageDataFetching}
                     className="mt-10"
                 >
-                    {isLoading ? (
+                    {isInitialLoading ? (
                         <div
+                            role="status"
                             aria-label="Loading available properties"
                             className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
                         >
                             {Array.from(
                                 { length: 6 },
                                 (_, index) => (
-                                    <PropertyCardSkeleton key={index} />
+                                    <PropertyCardSkeleton
+                                        key={index}
+                                    />
                                 ),
                             )}
+
+                            <span className="sr-only">
+                                Available properties are
+                                loading.
+                            </span>
                         </div>
-                    ) : error ? (
+                    ) : propertiesError ? (
                         <div
                             role="alert"
                             className="rounded-[2rem] border border-danger/20 bg-surface p-7 shadow-soft sm:p-10"
@@ -210,36 +305,45 @@ export function PropertiesBrowser() {
                                     <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-danger-soft text-danger">
                                         <RefreshCw
                                             aria-hidden="true"
-                                            className={`size-6 ${isFetching ? "animate-spin" : ""
+                                            className={`size-6 ${isPropertiesFetching
+                                                    ? "animate-spin"
+                                                    : ""
                                                 }`}
                                         />
                                     </span>
 
                                     <div>
                                         <h2 className="text-xl font-bold tracking-[-0.025em] text-foreground">
-                                            Properties could not be loaded
+                                            Properties could
+                                            not be loaded
                                         </h2>
 
                                         <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                                            {errorMessage}
+                                            {
+                                                propertiesErrorMessage
+                                            }
                                         </p>
                                     </div>
                                 </div>
 
                                 <button
                                     type="button"
-                                    onClick={() => void refetch()}
-                                    disabled={isFetching}
+                                    onClick={() =>
+                                        void refetch()
+                                    }
+                                    disabled={
+                                        isPropertiesFetching
+                                    }
                                     className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-hover active:bg-brand-active disabled:cursor-wait disabled:opacity-60"
                                 >
-                                    {isFetching && (
+                                    {isPropertiesFetching && (
                                         <LoaderCircle
                                             aria-hidden="true"
                                             className="size-4 animate-spin"
                                         />
                                     )}
 
-                                    {isFetching
+                                    {isPropertiesFetching
                                         ? "Trying again"
                                         : "Try again"}
                                 </button>
@@ -259,22 +363,29 @@ export function PropertiesBrowser() {
                             </p>
 
                             <h2 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-foreground">
-                                No matching properties found
+                                No matching properties
+                                found
                             </h2>
 
                             <p className="mx-auto mt-3 max-w-lg leading-7 text-muted-foreground">
-                                Try changing or clearing your filters. New
-                                listings will appear here when landlords make
-                                them available.
+                                Try changing or clearing
+                                your filters. New listings
+                                will appear here when
+                                landlords make them
+                                available.
                             </p>
 
-                            <button
-                                type="button"
-                                onClick={handleResetFilters}
-                                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface-subtle px-5 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
-                            >
-                                Clear applied filters
-                            </button>
+                            {activeFilterCount > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={
+                                        handleResetFilters
+                                    }
+                                    className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface-subtle px-5 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
+                                >
+                                    Clear applied filters
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <>
@@ -292,24 +403,31 @@ export function PropertiesBrowser() {
                                     available
                                 </p>
 
-                                {isFetching && (
-                                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
+                                {isRefreshing && (
+                                    <p className="inline-flex items-center gap-2 text-sm font-bold text-brand">
                                         <LoaderCircle
                                             aria-hidden="true"
                                             className="size-4 animate-spin"
                                         />
+
                                         Updating results
                                     </p>
                                 )}
                             </div>
 
                             <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                                {properties.map((property) => (
-                                    <PropertyCard
-                                        key={property.id}
-                                        property={property}
-                                    />
-                                ))}
+                                {properties.map(
+                                    (property) => (
+                                        <PropertyCard
+                                            key={
+                                                property.id
+                                            }
+                                            property={
+                                                property
+                                            }
+                                        />
+                                    ),
+                                )}
                             </div>
                         </>
                     )}
