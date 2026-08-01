@@ -32,7 +32,10 @@ import {
     type RentalRequestFormValues,
 } from "@/lib/validation/rental-request-schema";
 import type { PropertyStatus } from "@/types/property";
-import type { RentalStatus } from "@/types/rental";
+import type {
+    RentalStatus,
+    TenantRentalRequest,
+} from "@/types/rental";
 
 const defaultValues: RentalRequestFormValues = {
     moveInDate: "",
@@ -120,8 +123,13 @@ export function RentalRequestForm({
     } = useQuery({
         queryKey: tenantRentalsQueryKey,
         queryFn: getTenantRentals,
-        enabled: isTenant,
+        enabled:
+            isTenant &&
+            Boolean(sessionUser?.id),
         retry: false,
+        staleTime: 0,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
     });
 
     const blockingRentalRequest = tenantRentals.find(
@@ -162,19 +170,35 @@ export function RentalRequestForm({
         clearErrors("root");
 
         try {
-            await rentalRequestMutation.mutateAsync({
-                propertyId,
-                moveInDate: new Date(
-                    `${values.moveInDate}T00:00:00`,
-                ).toISOString(),
-                duration: Number(values.duration),
-                ...(values.message.trim()
-                    ? {
-                        message: values.message.trim(),
-                    }
-                    : {}),
-            });
+            const createdRequest =
+                await rentalRequestMutation.mutateAsync({
+                    propertyId,
+                    moveInDate: new Date(
+                        `${values.moveInDate}T00:00:00`,
+                    ).toISOString(),
+                    duration: Number(values.duration),
+                    ...(values.message.trim()
+                        ? {
+                            message: values.message.trim(),
+                        }
+                        : {}),
+                });
 
+            queryClient.setQueryData<
+                TenantRentalRequest[]
+            >(
+                tenantRentalsQueryKey,
+                (currentRentals = []) => [
+                    createdRequest,
+                    ...currentRentals.filter(
+                        (rentalRequest) =>
+                            rentalRequest.id !==
+                            createdRequest.id,
+                    ),
+                ],
+            );
+
+            // Fetch the canonical server state afterward.
             await queryClient.invalidateQueries({
                 queryKey: tenantRentalsQueryKey,
             });

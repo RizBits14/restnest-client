@@ -64,7 +64,12 @@ export function AuthActions({
         try {
             const message = await logoutUser();
 
-            queryClient.setQueryData(sessionQueryKey, null);
+            queryClient.clear();
+
+            queryClient.setQueryData(
+                sessionQueryKey,
+                null,
+            );
 
             toaster.success({
                 title: "Signed out successfully",

@@ -104,6 +104,8 @@ export function LoginForm() {
                 return;
             }
 
+            queryClient.clear();
+
             queryClient.setQueryData(
                 sessionQueryKey,
                 result.data.user,

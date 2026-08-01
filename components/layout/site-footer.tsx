@@ -1,7 +1,5 @@
 import {
     ArrowRight,
-    CreditCard,
-    ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -45,10 +43,6 @@ const footerGroups = [
                 label: "Landlord dashboard",
                 href: "/dashboard/landlord",
             },
-            {
-                label: "Admin dashboard",
-                href: "/dashboard/admin",
-            },
         ],
     },
 ] as const;
@@ -80,25 +74,6 @@ export function SiteFooter() {
                             through a clear digital experience.
                         </p>
 
-                        <div className="mt-6 flex flex-wrap gap-2.5">
-                            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3.5 py-2 text-xs font-bold text-muted-foreground">
-                                <ShieldCheck
-                                    aria-hidden="true"
-                                    className="size-3.5 text-success"
-                                />
-
-                                Role-protected access
-                            </span>
-
-                            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3.5 py-2 text-xs font-bold text-muted-foreground">
-                                <CreditCard
-                                    aria-hidden="true"
-                                    className="size-3.5 text-brand"
-                                />
-
-                                Stripe checkout
-                            </span>
-                        </div>
 
                         <Link
                             href="/properties"

@@ -20,7 +20,6 @@ import {
     Phone,
     RefreshCw,
     Search,
-    ShieldCheck,
     UserRound,
     type LucideIcon,
 } from "lucide-react";

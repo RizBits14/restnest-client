@@ -1,250 +1,341 @@
 import {
-    ArrowRight,
-    Building2,
-    CheckCircle2,
-    Search,
-    ShieldCheck,
-    type LucideIcon,
+    Quote,
+    Star,
+    UserRound,
 } from "lucide-react";
-import Link from "next/link";
 
-type ExperienceTone =
+type ReviewTone =
     | "brand"
     | "accent"
+    | "info"
     | "warning";
 
-type ExperienceItem = Readonly<{
-    eyebrow: string;
-    title: string;
-    description: string;
-    features: readonly string[];
-    href: string;
-    linkLabel: string;
-    icon: LucideIcon;
-    tone: ExperienceTone;
+type Review = Readonly<{
+    name: string;
+    initials: string;
+    role: string;
+    location: string;
+    review: string;
+    rating: number;
+    tone: ReviewTone;
 }>;
 
 const toneStyles: Record<
-    ExperienceTone,
+    ReviewTone,
     Readonly<{
-        icon: string;
-        eyebrow: string;
-        featureIcon: string;
+        avatar: string;
+        badge: string;
     }>
 > = {
     brand: {
-        icon: "bg-brand-soft text-brand",
-        eyebrow: "text-brand",
-        featureIcon: "text-brand",
+        avatar: "bg-brand-soft text-brand",
+        badge: "bg-brand-soft text-brand",
     },
     accent: {
-        icon: "bg-accent-soft text-accent",
-        eyebrow: "text-accent",
-        featureIcon: "text-accent",
+        avatar: "bg-accent-soft text-accent",
+        badge: "bg-accent-soft text-accent",
+    },
+    info: {
+        avatar: "bg-info-soft text-info",
+        badge: "bg-info-soft text-info",
     },
     warning: {
-        icon: "bg-warning-soft text-warning",
-        eyebrow: "text-warning",
-        featureIcon: "text-warning",
+        avatar: "bg-warning-soft text-warning",
+        badge: "bg-warning-soft text-warning",
     },
 };
 
-const experiences: readonly ExperienceItem[] = [
+const firstReviewRow: readonly Review[] = [
     {
-        eyebrow: "For tenants",
-        title: "Discover and rent with confidence.",
-        description:
-            "Explore clear property information, send rental requests, monitor decisions, complete payments, and share your experience.",
-        features: [
-            "Search available properties",
-            "Track rental-request progress",
-            "Pay and review securely",
-        ],
-        href: "/properties",
-        linkLabel: "Explore properties",
-        icon: Search,
+        name: "Nadia Rahman",
+        initials: "NR",
+        role: "Tenant",
+        location: "Dhaka",
+        review:
+            "RESTNEST made property searching feel organized and stress-free. I could compare listings and track my rental request easily.",
+        rating: 5,
         tone: "brand",
     },
     {
-        eyebrow: "For landlords",
-        title: "Manage every listing in one place.",
-        description:
-            "Publish properties, keep availability accurate, review tenant requests, and manage the complete rental lifecycle.",
-        features: [
-            "Create and edit listings",
-            "Review tenant requests",
-            "Monitor property activity",
-        ],
-        href: "/auth/register",
-        linkLabel: "Create landlord account",
-        icon: Building2,
+        name: "Farhan Ahmed",
+        initials: "FA",
+        role: "Landlord",
+        location: "Chattogram",
+        review:
+            "Managing listings is much easier now. Updating property availability and responding to tenant requests takes only a few minutes.",
+        rating: 5,
         tone: "accent",
     },
     {
-        eyebrow: "For administrators",
-        title: "Maintain a trusted marketplace.",
-        description:
-            "Monitor users and listings, manage account access, and inspect marketplace activity from a focused workspace.",
-        features: [
-            "Review platform accounts",
-            "Manage access status",
-            "Inspect marketplace listings",
-        ],
-        href: "/auth/login",
-        linkLabel: "Administrator sign in",
-        icon: ShieldCheck,
+        name: "Sadia Karim",
+        initials: "SK",
+        role: "Tenant",
+        location: "Sylhet",
+        review:
+            "The property information was clear, and the request status was always visible. The complete process felt transparent.",
+        rating: 5,
+        tone: "info",
+    },
+    {
+        name: "Imran Hossain",
+        initials: "IH",
+        role: "Landlord",
+        location: "Rajshahi",
+        review:
+            "I like having properties and tenant requests inside one workspace. The interface feels clean and straightforward.",
+        rating: 5,
         tone: "warning",
     },
+    {
+        name: "Tasnia Islam",
+        initials: "TI",
+        role: "Tenant",
+        location: "Khulna",
+        review:
+            "The property filters helped me find suitable homes quickly. Payment and review options were also easy to understand.",
+        rating: 5,
+        tone: "brand",
+    },
 ];
+
+const secondReviewRow: readonly Review[] = [
+    {
+        name: "Mahin Chowdhury",
+        initials: "MC",
+        role: "Landlord",
+        location: "Dhaka",
+        review:
+            "Creating a property listing was smooth, and I could manage every rental request without switching between different tools.",
+        rating: 5,
+        tone: "accent",
+    },
+    {
+        name: "Raisa Sultana",
+        initials: "RS",
+        role: "Tenant",
+        location: "Cumilla",
+        review:
+            "I appreciated the clear property information and responsive layout. The platform also worked comfortably from my phone.",
+        rating: 5,
+        tone: "info",
+    },
+    {
+        name: "Shafin Alam",
+        initials: "SA",
+        role: "Landlord",
+        location: "Gazipur",
+        review:
+            "RESTNEST gives me a professional way to present properties and communicate rental decisions with prospective tenants.",
+        rating: 5,
+        tone: "warning",
+    },
+    {
+        name: "Anika Noor",
+        initials: "AN",
+        role: "Tenant",
+        location: "Narayanganj",
+        review:
+            "My request, payment, and review information stayed together. I never felt confused about what I needed to do next.",
+        rating: 5,
+        tone: "brand",
+    },
+    {
+        name: "Nafis Hasan",
+        initials: "NH",
+        role: "Landlord",
+        location: "Barishal",
+        review:
+            "The property-management workflow is simple but complete. It saves time and keeps important information easy to find.",
+        rating: 5,
+        tone: "accent",
+    },
+];
+
+type ReviewCardProps = Readonly<{
+    review: Review;
+}>;
+
+function ReviewCard({
+    review,
+}: ReviewCardProps) {
+    const visualStyle =
+        toneStyles[review.tone];
+
+    return (
+        <article className="flex h-full flex-col rounded-[1.5rem] border border-border bg-surface p-5 shadow-soft sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                    <span
+                        className={`grid size-12 shrink-0 place-items-center rounded-2xl text-sm font-bold ${visualStyle.avatar}`}
+                    >
+                        {review.initials}
+                    </span>
+
+                    <div className="min-w-0">
+                        <h3 className="truncate text-sm font-bold text-foreground">
+                            {review.name}
+                        </h3>
+
+                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                            {review.location}
+                        </p>
+                    </div>
+                </div>
+
+                <Quote
+                    aria-hidden="true"
+                    className="size-6 shrink-0 text-brand/30"
+                    strokeWidth={1.8}
+                />
+            </div>
+
+            <div
+                aria-label={`${review.rating} out of 5 stars`}
+                className="mt-5 flex items-center gap-1 text-warning"
+            >
+                {Array.from(
+                    { length: review.rating },
+                    (_, index) => (
+                        <Star
+                            key={index}
+                            aria-hidden="true"
+                            className="size-4"
+                            fill="currentColor"
+                            strokeWidth={1.5}
+                        />
+                    ),
+                )}
+            </div>
+
+            <blockquote className="mt-4 flex-1 text-sm leading-7 text-muted-foreground">
+                “{review.review}”
+            </blockquote>
+
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
+                <span
+                    className={`inline-flex rounded-full px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.08em] ${visualStyle.badge}`}
+                >
+                    {review.role}
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <UserRound
+                        aria-hidden="true"
+                        className="size-3.5"
+                    />
+
+                    Demo review
+                </span>
+            </div>
+        </article>
+    );
+}
+
+type ReviewGroupProps = Readonly<{
+    reviews: readonly Review[];
+    duplicate?: boolean;
+}>;
+
+function ReviewGroup({
+    reviews,
+    duplicate = false,
+}: ReviewGroupProps) {
+    return (
+        <div
+            aria-hidden={duplicate || undefined}
+            className="review-marquee-group"
+        >
+            {reviews.map((review) => (
+                <div
+                    key={`${duplicate ? "duplicate-" : ""}${review.name}`}
+                    className="review-marquee-item"
+                >
+                    <ReviewCard review={review} />
+                </div>
+            ))}
+        </div>
+    );
+}
+
+type ReviewMarqueeProps = Readonly<{
+    reviews: readonly Review[];
+    reverse?: boolean;
+}>;
+
+function ReviewMarquee({
+    reviews,
+    reverse = false,
+}: ReviewMarqueeProps) {
+    return (
+        <div className="review-marquee">
+            <div
+                className={[
+                    "review-marquee-track",
+                    reverse
+                        ? "review-marquee-track-reverse"
+                        : "",
+                ].join(" ")}
+            >
+                <ReviewGroup reviews={reviews} />
+
+                <ReviewGroup
+                    reviews={reviews}
+                    duplicate
+                />
+            </div>
+        </div>
+    );
+}
 
 export function PlatformExperienceSection() {
     return (
         <section
-            aria-labelledby="platform-experience-title"
-            className="border-b border-border bg-surface-subtle py-20 sm:py-24 lg:py-28"
+            aria-labelledby="community-reviews-title"
+            className="overflow-hidden border-b border-border bg-surface-subtle py-20 sm:py-24 lg:py-28"
         >
             <div className="mx-auto w-full max-w-[88rem] px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-3xl">
                         <span className="inline-flex rounded-full border border-brand/20 bg-brand-soft px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-brand">
-                            Designed around real workflows
+                            Community experiences
                         </span>
 
                         <h2
-                            id="platform-experience-title"
+                            id="community-reviews-title"
                             className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.05em] text-foreground sm:text-5xl"
                         >
-                            One connected platform.
+                            Trusted experiences from
                             <span className="block text-brand">
-                                Three focused experiences.
+                                tenants and landlords.
                             </span>
                         </h2>
                     </div>
 
                     <p className="max-w-xl text-base leading-7 text-muted-foreground">
-                        RESTNEST gives tenants, landlords, and
-                        administrators the tools relevant to their
-                        responsibilities without unnecessary complexity.
+                        A continuously moving collection of fictional
+                        testimonials demonstrating how RESTNEST may
+                        support both sides of the rental marketplace.
                     </p>
                 </div>
+            </div>
 
-                <div className="mt-10 grid items-stretch gap-5 lg:grid-cols-3">
-                    {experiences.map((experience) => {
-                        const Icon = experience.icon;
-                        const visualStyle =
-                            toneStyles[experience.tone];
+            <div className="mt-12 space-y-5">
+                <ReviewMarquee
+                    reviews={firstReviewRow}
+                />
 
-                        return (
-                            <article
-                                key={experience.eyebrow}
-                                className="group flex h-full flex-col rounded-[1.75rem] border border-border bg-surface p-5 shadow-soft transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-brand/25 hover:shadow-raised sm:p-6"
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <span
-                                        className={`grid size-14 shrink-0 place-items-center rounded-2xl ${visualStyle.icon}`}
-                                    >
-                                        <Icon
-                                            aria-hidden="true"
-                                            className="size-6"
-                                            strokeWidth={1.8}
-                                        />
-                                    </span>
+                <ReviewMarquee
+                    reviews={secondReviewRow}
+                    reverse
+                />
+            </div>
 
-                                    <span
-                                        className={`text-xs font-bold uppercase tracking-[0.13em] ${visualStyle.eyebrow}`}
-                                    >
-                                        {experience.eyebrow}
-                                    </span>
-                                </div>
-
-                                <h3 className="mt-7 text-2xl font-bold leading-tight tracking-[-0.035em] text-foreground">
-                                    {experience.title}
-                                </h3>
-
-                                <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                                    {experience.description}
-                                </p>
-
-                                <ul className="mt-6 space-y-3">
-                                    {experience.features.map((feature) => (
-                                        <li
-                                            key={feature}
-                                            className="flex items-start gap-3 text-sm font-semibold text-foreground"
-                                        >
-                                            <CheckCircle2
-                                                aria-hidden="true"
-                                                className={`mt-0.5 size-4 shrink-0 ${visualStyle.featureIcon}`}
-                                            />
-
-                                            <span>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <div className="mt-auto pt-8">
-                                    <Link
-                                        href={experience.href}
-                                        className="group/link inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground transition-colors duration-200 hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
-                                    >
-                                        {experience.linkLabel}
-
-                                        <ArrowRight
-                                            aria-hidden="true"
-                                            className="size-4 transition-transform duration-200 group-hover/link:translate-x-0.5"
-                                        />
-                                    </Link>
-                                </div>
-                            </article>
-                        );
-                    })}
-                </div>
-
-                <div className="relative mt-8 overflow-hidden rounded-[2rem] bg-brand px-6 py-8 text-brand-foreground sm:px-8 sm:py-10 lg:px-10">
-                    <div
-                        aria-hidden="true"
-                        className="absolute right-0 top-0 hidden h-full w-28 rounded-l-[3rem] bg-brand-foreground/10 lg:block"
-                    />
-
-                    <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="max-w-2xl">
-                            <p className="text-xs font-bold uppercase tracking-[0.15em] text-brand-foreground/75">
-                                Start your RESTNEST journey
-                            </p>
-
-                            <h3 className="mt-3 text-3xl font-bold tracking-[-0.04em] sm:text-4xl">
-                                Find a home or introduce your property to
-                                the marketplace.
-                            </h3>
-
-                            <p className="mt-4 max-w-xl text-sm leading-7 text-brand-foreground/80">
-                                Begin with property discovery or create an
-                                account to access the tools designed for
-                                your role.
-                            </p>
-                        </div>
-
-                        <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-                            <Link
-                                href="/properties"
-                                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold text-foreground transition-transform duration-200 hover:-translate-y-0.5"
-                            >
-                                Browse properties
-
-                                <ArrowRight
-                                    aria-hidden="true"
-                                    className="size-4"
-                                />
-                            </Link>
-
-                            <Link
-                                href="/auth/register"
-                                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-foreground/25 px-5 text-sm font-bold text-brand-foreground transition-colors duration-200 hover:bg-brand-foreground/10"
-                            >
-                                Create account
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+            <div className="mx-auto mt-8 w-full max-w-[88rem] px-4 sm:px-6 lg:px-8">
+                <p className="text-center text-xs leading-5 text-muted-foreground">
+                    Demonstration testimonials only. Replace them with
+                    verified user reviews when real review data becomes
+                    available.
+                </p>
             </div>
         </section>
     );

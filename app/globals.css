@@ -272,3 +272,54 @@ svg {
     animation-iteration-count: 1 !important;
   }
 }
+
+.restnest-marquee {
+  width: 100%;
+  overflow: hidden;
+}
+
+.restnest-marquee-track {
+  display: flex;
+  width: max-content;
+  flex-wrap: nowrap;
+  animation: restnest-review-marquee 38s linear infinite;
+  will-change: transform;
+}
+
+.restnest-marquee-group {
+  display: flex;
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.restnest-marquee:hover .restnest-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes restnest-review-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .restnest-marquee {
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+  }
+
+  .restnest-marquee-track {
+    animation: none;
+    transform: none;
+  }
+
+  .restnest-marquee-group[aria-hidden="true"] {
+    display: none;
+  }
+}
