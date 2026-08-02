@@ -13,7 +13,6 @@ import {
     ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -48,7 +47,6 @@ const errorInputClassName =
     "border-danger focus:border-danger focus:ring-danger/10";
 
 export function LoginForm() {
-    const router = useRouter();
     const queryClient = useQueryClient();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -106,6 +104,12 @@ export function LoginForm() {
 
             queryClient.clear();
 
+            const dashboardPath = getDashboardPath(
+                result.data.user.role,
+            );
+
+            queryClient.clear();
+
             queryClient.setQueryData(
                 sessionQueryKey,
                 result.data.user,
@@ -116,15 +120,7 @@ export function LoginForm() {
                 description: "Welcome back to RESTNEST.",
             });
 
-            await new Promise((resolve) => {
-                window.setTimeout(resolve, 650);
-            });
-
-            router.replace(
-                getDashboardPath(result.data.user.role),
-            );
-
-            router.refresh();
+            window.location.replace(dashboardPath);
         } catch {
             const message =
                 "Unable to connect to RESTNEST. Check your connection and try again.";
